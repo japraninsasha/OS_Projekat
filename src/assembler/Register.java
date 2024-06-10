@@ -1,5 +1,4 @@
 package assembler;
-
 public class Register {
     public final String name;
     public final String address;
@@ -11,3 +10,4 @@ public class Register {
         this.value = value;
     }
 }
+
