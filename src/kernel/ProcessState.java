@@ -1,4 +1,5 @@
 package kernel;
 
-public class ProcessState {
+public enum ProcessState {
+    NEW, READY, RUNNING, BLOCKED, TERMINATED, DONE;
 }
