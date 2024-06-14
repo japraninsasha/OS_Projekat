@@ -1,5 +1,8 @@
 package assembler;
 
+import kernel.ProcessState;
+import shell.Shell;
+
 public class Operations {
 
         public static final String halt = "0000";
@@ -88,19 +91,19 @@ public class Operations {
             ACC -= 1;
         }
 
-        /*public static void halt() {
-            Shell.currentlyExecuting.setState(ProcessState.DONE);
-        }*/
+        public static void halt() {
+            Shell.currentlyExecuting.setProcessState(ProcessState.DONE);
+        }
 
-        /*public static void jmp(String adr) {
+        public static void jmp(String adr) {
             int temp = Integer.parseInt(adr, 2);
             if (temp >= Shell.limit) {
-                Shell.currentlyExecuting.setState(ProcessState.TERMINATED);
-                System.out.println("Error with address in process " + Shell.currentlyExecuting.getName());
+                Shell.currentlyExecuting.setProcessState(ProcessState.TERMINATED);
+                System.out.println("Error with address in process " + Shell.currentlyExecuting.getProcessName());
                 return;
             }
             Shell.PC = temp;
-        }*/
+        }
 
 
         private static Register getRegister(String adr) {
