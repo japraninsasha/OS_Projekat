@@ -3,14 +3,14 @@ package memory;
 import java.util.ArrayList;
 import kernel.Process;
 
-public class PartitionMemory {
+public class MemoryPartition {
     private int[] data;
     private int positionInMemory = -1;
     private int size;
     private Process process;
-    private static ArrayList<PartitionMemory> allPartitons;
+    private static ArrayList<MemoryPartition> allPartitons;
 
-    public PartitionMemory(Process process) {
+    public MemoryPartition(Process process) {
         this.process = process;
         size = process.getInstructions().size();
         data = new int[size];
@@ -21,7 +21,7 @@ public class PartitionMemory {
         allPartitons.add(this);
     }
 
-    public PartitionMemory(int[] data) {
+    public MemoryPartition(int[] data) {
         this.data = data;
     }
 
@@ -29,16 +29,16 @@ public class PartitionMemory {
         allPartitons = new ArrayList<>();
     }
 
-    public static PartitionMemory getPartitionByAddress(int address) {
-        for (PartitionMemory partitionMemory : allPartitons) {
+    public static MemoryPartition getPartitionByAddress(int address) {
+        for (MemoryPartition partitionMemory : allPartitons) {
             if (partitionMemory.getPositionInMemory() == address)
                 return partitionMemory;
         }
         return null;
     }
 
-    public static PartitionMemory getPartitionByProcess(Process process) {
-        for (PartitionMemory partitionMemory : allPartitons) {
+    public static MemoryPartition getPartitionByProcess(Process process) {
+        for (MemoryPartition partitionMemory : allPartitons) {
             if (partitionMemory.getProcess().equals(process))
                 return partitionMemory;
         }
