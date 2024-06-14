@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 import assembler.Operations;
 import javafx.scene.control.TreeItem;
 import kernel.Process;
-import memory.FileInMemory;
+import memory.MemoryFile;
 import shell.Shell;
 
 public class FileSystem {
@@ -37,7 +37,7 @@ public class FileSystem {
                     createTree(newItem);
                 else { // Ucitava fajlove u sekundarnu memoriju
                     byte[] content = Files.readAllBytes(newItem.getValue().toPath());
-                    FileInMemory newFile = new FileInMemory(newItem.getValue().getName(), content);
+                    MemoryFile newFile = new MemoryFile(newItem.getValue().getName(), content);
                     if (!Shell.memory.contains(newItem.getValue().getName()))
                         Shell.memory.save(newFile);
                 }
@@ -106,7 +106,7 @@ public class FileSystem {
     }
 
     public static void createFile(Process process) {
-        String name = process.getName().substring(0, process.getName().indexOf('.')) + "_output";
+        String name = process.getProcessName().substring(0, process.getProcessName().indexOf('.')) + "_output";
         File newFile = new File(process.getFilePath().getParent() + "\\" + name + ".txt");
         try {
             newFile.createNewFile();

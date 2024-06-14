@@ -1,5 +1,8 @@
 package kernel;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
+
 public class Process {
     private int processId;
     private String processName;
@@ -7,6 +10,9 @@ public class Process {
     private int remainingBurstTime;
     private int memoryRequirement;
     private ProcessState processState;
+    private Path filePath;
+
+    private ArrayList<String> instructions = new ArrayList<>();
 
     public Process(int processId, String processName, int totalBurstTime, int memoryRequirement) {
         this.processId = processId;
@@ -15,6 +21,7 @@ public class Process {
         this.remainingBurstTime = totalBurstTime;
         this.memoryRequirement = memoryRequirement;
         this.processState = ProcessState.NEW;
+        //this.filePath = Paths.get(Shell.tree.getCurrentFolder().getAbsolutePath() + "\\" + program);
     }
 
     // Getters and setters
@@ -26,4 +33,19 @@ public class Process {
     public int getMemoryRequirement() { return memoryRequirement; }
     public ProcessState getProcessState() { return processState; }
     public void setProcessState(ProcessState processState) { this.processState = processState; }
+
+    public ArrayList<String> getInstructions() {
+        return instructions;
+    }
+
+    public void setInstructions(ArrayList<String> instructions) {
+        this.instructions = instructions;
+    }
+
+    public Path getFilePath() {
+        return filePath;
+    }
+
+    //TODO
+    //dodati funkciju asembler instrucions->machine instructions
 }
