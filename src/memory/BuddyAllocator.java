@@ -7,13 +7,13 @@ public class BuddyAllocator {
     private final int maxBlockSize;
     private final int totalSize;
     private final TreeMap<Integer, LinkedList<Integer>> freeLists;
-    private final int[] memory; // Simulacija memorijskog prostora
+    private final int[] memory; // Simulating memory space
 
     public BuddyAllocator(int minBlockSize, int maxBlockSize, int totalSize) {
         this.minBlockSize = minBlockSize;
         this.maxBlockSize = maxBlockSize;
         this.totalSize = totalSize;
-        this.memory = new int[totalSize]; // Inicijalizacija memorijskog prostora
+        this.memory = new int[totalSize]; // Initializing memory space
         this.freeLists = new TreeMap<>();
         initializeFreeLists();
     }

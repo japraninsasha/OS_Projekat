@@ -46,6 +46,5 @@ public class Process {
         return filePath;
     }
 
-    //TODO
-    //dodati funkciju asembler instrucions->machine instructions
+    // TODO: Add function to convert assembler instructions to machine instructions
 }

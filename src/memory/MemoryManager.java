@@ -1,7 +1,6 @@
 package memory;
 
 import java.util.ArrayList;
-
 import assembler.Operations;
 import kernel.Process;
 import kernel.ProcessState;
@@ -21,7 +20,16 @@ public class MemoryManager {
         if (!partitionsInRam.contains(partitionMemory)) { // proverava da li je već korišćen taj proces
             return loadPartition(new MemoryPartition(process));
         } else {
-            return process.getStartAdress();
+            // Adjust logic here to return position of loaded partition
+            MemoryPartition loadedPartition = partitionsInRam.stream()
+                    .filter(p -> p.getProcess().getProcessId() == process.getProcessId())
+                    .findFirst()
+                    .orElse(null);
+            if (loadedPartition != null) {
+                return loadedPartition.getPositionInMemory();
+            } else {
+                return -1; // Handle error or return appropriate value
+            }
         }
     }
 
@@ -40,7 +48,6 @@ public class MemoryManager {
 
     public int[] readPartition(MemoryPartition partition) {
         if (partitionsInRam.contains(partition)) {
-            // Assuming we have a method to read the data from the BuddyAllocator memory space
             return buddyAllocator.getMemory(partition.getPositionInMemory(), partition.getSize());
         }
         return null;
