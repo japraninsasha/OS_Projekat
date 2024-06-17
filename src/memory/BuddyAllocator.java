@@ -7,11 +7,13 @@ public class BuddyAllocator {
     private final int maxBlockSize;
     private final int totalSize;
     private final TreeMap<Integer, LinkedList<Integer>> freeLists;
+    private final int[] memory; // Simulacija memorijskog prostora
 
     public BuddyAllocator(int minBlockSize, int maxBlockSize, int totalSize) {
         this.minBlockSize = minBlockSize;
         this.maxBlockSize = maxBlockSize;
         this.totalSize = totalSize;
+        this.memory = new int[totalSize]; // Inicijalizacija memorijskog prostora
         this.freeLists = new TreeMap<>();
         initializeFreeLists();
     }
@@ -54,5 +56,17 @@ public class BuddyAllocator {
             size *= 2;
         }
     }
-}
 
+    public int[] getMemory(int startAddress, int size) {
+        int[] data = new int[size];
+        System.arraycopy(memory, startAddress, data, 0, size);
+        return data;
+    }
+
+    public void printMemory() {
+        System.out.println("Memory Allocation Status:");
+        for (Map.Entry<Integer, LinkedList<Integer>> entry : freeLists.entrySet()) {
+            System.out.println("Block size: " + entry.getKey() + ", Free blocks: " + entry.getValue());
+        }
+    }
+}
