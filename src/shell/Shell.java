@@ -1,31 +1,28 @@
 package shell;
 
-import java.io.File;
-
 import assembler.Constants;
 import assembler.Operations;
-import fileSystem.FileSystem;
 import kernel.Process;
 import kernel.ProcessScheduler;
-import memory.MemoryManager;
-import memory.SecondaryMemory;
+import kernel.ProcessState;
+import memory.SSD;
+import fileSystem.FileSystem;
+
+import java.io.File;
 
 public class Shell {
 
+    public static SSD memory;
     public static FileSystem tree;
-    public static MemoryManager manager;
     public static Process currentlyExecuting = null;
-    public static SecondaryMemory memory;
     public static int PC; // Program counter
     public static String IR; // Instruction register
     public static int base;
     public static int limit;
 
     public static void boot() {
-        new ProcessScheduler();
-        memory = new SecondaryMemory();
-        Shell.manager = new MemoryManager();
-        tree = new FileSystem(new File("Programs"));
+        memory = new SSD();
+        tree = new FileSystem(new File("Programs")); // Pretpostavka da se programi nalaze u "Programs" folderu
     }
 
     public static String asemblerToMachineInstruction(String command) {
@@ -33,12 +30,12 @@ public class Shell {
         String arr[] = command.split("[ |,]");
 
         // prevodjenje operacije
-        switch (arr[0]) {
-            case "MOV":
-                instruction += Operations.mov;
-                break;
+        switch (arr[0].toUpperCase()) {
             case "HALT":
                 instruction += Operations.halt;
+                break;
+            case "LOAD":
+                instruction += Operations.load;
                 break;
             case "STORE":
                 instruction += Operations.store;
@@ -52,20 +49,17 @@ public class Shell {
             case "MUL":
                 instruction += Operations.mul;
                 break;
+            case "DIV":
+                instruction += Operations.div;
+                break;
             case "JMP":
                 instruction += Operations.jmp;
                 break;
-            case "JMPL":
-                instruction += Operations.jmpl;
+            case "JMPZ":
+                instruction += Operations.jmpz;
                 break;
-            case "JMPG":
-                instruction += Operations.jmpg;
-                break;
-            case "JMPE":
-                instruction += Operations.jmpe;
-                break;
-            case "JMPD":
-                instruction += Operations.jmpd;
+            case "JMPN":
+                instruction += Operations.jmpn;
                 break;
             case "INC":
                 instruction += Operations.inc;
@@ -73,275 +67,101 @@ public class Shell {
             case "DEC":
                 instruction += Operations.dec;
                 break;
-            case "LOAD":
-                instruction += Operations.load;
-                break;
+            default:
+                System.out.println("Unknown command: " + arr[0]);
+                return null;
         }
 
-        if (arr[0].equals("HALT")) {
-            return instruction;
-        } else if (arr[0].equals("JMP")) { // npr: JMP 5(adr)
-            instruction += toBinary(arr[1]);
-            return instruction;
-        } else if (arr[0].equals("JMPL") || arr[0].equals("JMPG") || arr[0].equals("JMPE") || arr[0].equals("JMPD")) { // npr.:
-            // JMPL
-            // R1,1(value),6(adr)
-            switch (arr[1]) { // +registar
-                case "R1":
-                    instruction += Constants.R1;
-                    break;
-                case "R2":
-                    instruction += Constants.R2;
-                    break;
-                case "R3":
-                    instruction += Constants.R3;
-                    break;
-                case "R4":
-                    instruction += Constants.R4;
-                    break;
-            }
-            if (!arr[2].equals("R1") && !arr[2].equals("R2") && !arr[2].equals("R3") && !arr[2].equals("R4")) {
-                instruction += toBinary(arr[2]); // +vrijendost
+        if (arr.length > 1) {
+            if (arr[0].equalsIgnoreCase("HALT")) {
+                return instruction;
+            } else if (arr[0].equalsIgnoreCase("JMP")) {
+                instruction += toBinary(arr[1]);
             } else {
-                switch (arr[2]) { // +registar
-                    case "R1":
-                        instruction += Constants.R1;
-                        break;
-                    case "R2":
-                        instruction += Constants.R2;
-                        break;
-                    case "R3":
-                        instruction += Constants.R3;
-                        break;
-                    case "R4":
-                        instruction += Constants.R4;
-                        break;
+                instruction += getRegisterBinary(arr[1]);
+                if (arr.length == 3) {
+                    instruction += toBinary(arr[2]);
                 }
             }
-            instruction += toBinary(arr[3]); // +adresa
-            return instruction;
-        } else if (arr[0].equals("INC") || arr[0].equals("DEC")) {
-            switch (arr[1]) { // +registar
-                case "R1":
-                    instruction += Constants.R1;
-                    break;
-                case "R2":
-                    instruction += Constants.R2;
-                    break;
-                case "R3":
-                    instruction += Constants.R3;
-                    break;
-                case "R4":
-                    instruction += Constants.R4;
-                    break;
-            }
-            return instruction;
-        } else if (arr[2].equals("R1") || arr[2].equals("R2") || arr[2].equals("R3") || arr[2].equals("R4")
-                || arr[2].equals("R5")) { // ako su oba argumenta registri (MOV,ADD,SUB,MUL)
-            switch (arr[1]) {
-                case "R1":
-                    instruction += Constants.R1;
-                    break;
-                case "R2":
-                    instruction += Constants.R2;
-                    break;
-                case "R3":
-                    instruction += Constants.R3;
-                    break;
-                case "R4":
-                    instruction += Constants.R4;
-                    break;
-            }
-            switch (arr[2]) {
-                case "R1":
-                    instruction += Constants.R1;
-                    break;
-                case "R2":
-                    instruction += Constants.R2;
-                    break;
-                case "R3":
-                    instruction += Constants.R3;
-                    break;
-                case "R4":
-                    instruction += Constants.R4;
-                    break;
-            }
-            return instruction;
-        } else {
-            switch (arr[1]) { // +registar
-                case "R1":
-                    instruction += Constants.R1;
-                    break;
-                case "R2":
-                    instruction += Constants.R2;
-                    break;
-                case "R3":
-                    instruction += Constants.R3;
-                    break;
-                case "R4":
-                    instruction += Constants.R4;
-                    break;
-            }
-            instruction += toBinary(arr[2]); // +vrijednost
-            return instruction;
         }
 
+        return instruction;
     }
 
-    // iz dekadnog (adrese i vrijednosti) u binarni (5->00000101)
     private static String toBinary(String s) {
         int num = Integer.parseInt(s);
-        int binary[] = new int[10];
-        int index = 0;
-        int counter = 0;
-        while (num > 0) {
-            binary[index++] = num % 2;
-            num = num / 2;
-            counter++;
+        String bin = Integer.toBinaryString(num);
+        return String.format("%8s", bin).replace(' ', '0'); // pad to 8 bits
+    }
+
+    private static String getRegisterBinary(String reg) {
+        switch (reg.toUpperCase()) {
+            case "R1":
+                return Constants.R1;
+            case "R2":
+                return Constants.R2;
+            case "R3":
+                return Constants.R3;
+            case "R4":
+                return Constants.R4;
+            default:
+                return "";
         }
-        String bin = "";
-        counter = 8 - counter;
-        for (int i = 0; i < counter; i++)
-            bin += "0";
-        for (int i = index - 1; i >= 0; i--) {
-            bin += binary[i];
-        }
-        return bin;
     }
 
     public static void executeMachineInstruction() {
         String operation = IR.substring(0, 4);
-        boolean programCounterChanged = false;
 
-        if (operation.equals(Operations.halt)) {
-            Operations.halt();
-        } else if (operation.equals(Operations.mov)) {
-            String r1 = IR.substring(4, 8);
-            String r2 = IR.substring(8, 12);
-            Operations.mov(r1, r2);
-        } else if (operation.equals(Operations.store)) {
-            String r1 = IR.substring(4, 8);
-            String val2 = IR.substring(8, 16);
-            Operations.store(r1, val2);
-        } else if (operation.equals(Operations.add)) {
-            String r1 = IR.substring(4, 8);
-            if (IR.length() == 12) { // oba registra
-                String r2 = IR.substring(8, 12);
-                Operations.add(r1, r2);
-            } else if (IR.length() == 16) { // registar pa vrijednost
-                String val2 = IR.substring(8, 16);
-                Operations.add(r1, val2);
-            }
-        } else if (operation.equals(Operations.sub)) {
-            String r1 = IR.substring(4, 8);
-            if (IR.length() == 12) { // oba registra
-                String r2 = IR.substring(8, 12);
-                Operations.sub(r1, r2);
-            } else if (IR.length() == 16) { // registar pa vrijednost
-                String val2 = IR.substring(8, 16);
-                Operations.sub(r1, val2);
-            }
-        } else if (operation.equals(Operations.mul)) {
-            String r1 = IR.substring(4, 8);
-            if (IR.length() == 12) { // oba registra
-                String r2 = IR.substring(8, 12);
-                Operations.mul(r1, r2);
-            } else if (IR.length() == 16) { // registar pa vrijednost
-                String val2 = IR.substring(8, 16);
-                Operations.mul(r1, val2);
-            }
-        } else if (operation.equals(Operations.jmp)) {
-            String adr = IR.substring(4, 12);
-            Operations.jmp(adr);
-            programCounterChanged = true;
-        } else if (operation.equals(Operations.jmpl)) {
-            String reg = IR.substring(4, 8);
-            String val = null;
-            String adr = null;
-            if (IR.length() == 20) { // oba registra
-                val = IR.substring(8, 12);
-                adr = IR.substring(12, 20);
-            } else if (IR.length() == 24) { // registar i vrijednost
-                val = IR.substring(8, 16);
-                adr = IR.substring(16, 24);
-            }
-            programCounterChanged = Operations.jmpl(reg, val, adr);
-        } else if (operation.equals(Operations.jmpg)) {
-            String reg = IR.substring(4, 8);
-            String val = null;
-            String adr = null;
-            if (IR.length() == 20) { // oba registra
-                val = IR.substring(8, 12);
-                adr = IR.substring(12, 20);
-            } else if (IR.length() == 24) { // registar i vrijednost
-                val = IR.substring(8, 16);
-                adr = IR.substring(16, 24);
-            }
-            programCounterChanged = Operations.jmpg(reg, val, adr);
-        } else if (operation.equals(Operations.jmpe)) {
-            String reg = IR.substring(4, 8);
-            String val = null;
-            String adr = null;
-            if (IR.length() == 20) { // oba registra
-                val = IR.substring(8, 12);
-                adr = IR.substring(12, 20);
-            } else if (IR.length() == 24) { // registar i vrijednost
-                val = IR.substring(8, 16);
-                adr = IR.substring(16, 24);
-            }
-            programCounterChanged = Operations.jmpe(reg, val, adr);
-        } else if (operation.equals(Operations.load)) {
-            String r1 = IR.substring(4, 8);
-            String adr = IR.substring(8, 16);
-            Operations.load(r1, adr);
-        } else if (operation.equals(Operations.jmpd)) {
-            String reg = IR.substring(4, 8);
-            String val = null;
-            String adr = null;
-            if (IR.length() == 20) { // oba registra
-                val = IR.substring(8, 12);
-                adr = IR.substring(12, 20);
-            } else if (IR.length() == 24) { // registar i vrijednost
-                val = IR.substring(8, 16);
-                adr = IR.substring(16, 24);
-            }
-            programCounterChanged = Operations.jmpe(reg, val, adr);
-        } else if (operation.equals(Operations.inc)) {
-            String reg = IR.substring(4, 8);
-            Operations.inc(reg);
-        } else if (operation.equals(Operations.dec)) {
-            String reg = IR.substring(4, 8);
-            Operations.dec(reg);
+        switch (operation) {
+            case Operations.halt:
+                Operations.halt();
+                break;
+            case Operations.load:
+                Operations.load(IR.substring(4, 8));
+                break;
+            case Operations.store:
+                Operations.store(IR.substring(4, 8));
+                break;
+            case Operations.add:
+                Operations.add(IR.substring(4));
+                break;
+            case Operations.sub:
+                Operations.sub(IR.substring(4));
+                break;
+            case Operations.mul:
+                Operations.mul(IR.substring(4));
+                break;
+            case Operations.div:
+                Operations.div(IR.substring(4));
+                break;
+            case Operations.jmp:
+                Operations.jmp(IR.substring(4, 12));
+                break;
+            case Operations.jmpz:
+                // Add implementation for jmpz
+                break;
+            case Operations.jmpn:
+                // Add implementation for jmpn
+                break;
+            case Operations.inc:
+                Operations.inc();
+                break;
+            case Operations.dec:
+                Operations.dec();
+                break;
+            default:
+                System.out.println("Unknown operation code: " + operation);
+                break;
         }
-        if (!programCounterChanged)
-            PC++;
+
+        PC++;
     }
 
-    // pretvara vrijednost iz ram memorije (int) u masinsku instrukciju
     public static String fromIntToInstruction(int temp) {
-        String help = Integer.toBinaryString(temp);
-        if (help == "0")
-            help = "0000";
-        else if (help.length() == 8)
-            return help;
-        else if (help.length() <= 12) {
-            while (help.length() < 12)
-                help = "0" + help;
-        } else if (help.length() <= 16) {
-            while (help.length() < 16)
-                help = "0" + help;
-        } else if (help.length() <= 20) {
-            while (help.length() < 20)
-                help = "0" + help;
-        } else if (help.length() <= 24) {
-            while (help.length() < 24)
-                help = "0" + help;
-        }
-        return help;
+        String bin = Integer.toBinaryString(temp);
+        return String.format("%16s", bin).replace(' ', '0'); // pad to 16 bits
     }
 
-    // cuva vrijednost programskog brojaca i registara procesa koji je prekinut od
-    // strane rasporedjivaca
     public static void saveValues() {
         int[] registers = {
                 Operations.R1.value,

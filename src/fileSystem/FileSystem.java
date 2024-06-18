@@ -35,7 +35,7 @@ public class FileSystem {
                 rootItem.getChildren().add(newItem);
                 if (Files.isDirectory(path))
                     createTree(newItem);
-                else { // Ucitava fajlove u sekundarnu memoriju
+                else { // Učitava fajlove u sekundarnu memoriju
                     byte[] content = Files.readAllBytes(newItem.getValue().toPath());
                     MemoryFile newFile = new MemoryFile(newItem.getValue().getName(), content);
                     if (!Shell.memory.contains(newItem.getValue().getName()))
@@ -106,7 +106,7 @@ public class FileSystem {
     }
 
     public static void createFile(Process process) {
-        String name = process.getName().substring(0, process.getName().indexOf('.')) + "_output";
+        String name = process.getProcessName().substring(0, process.getProcessName().indexOf('.')) + "_output";
         File newFile = new File(process.getFilePath().getParent() + "\\" + name + ".txt");
         try {
             newFile.createNewFile();

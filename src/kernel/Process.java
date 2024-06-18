@@ -1,7 +1,13 @@
 package kernel;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+
+import shell.Shell;
 
 public class Process {
     private int processId;
@@ -11,10 +17,11 @@ public class Process {
     private int memoryRequirement;
     private ProcessState processState;
     private Path filePath;
-
     private ArrayList<String> instructions = new ArrayList<>();
+    private int[] registerValues = new int[4];
+    private int pcValue;
 
-    public Process(int processId, String processName, int totalBurstTime, int memoryRequirement) {
+    public Process(int processId, String processName, int totalBurstTime, int memoryRequirement, String program) {
         this.processId = processId;
         this.processName = processName;
         this.totalBurstTime = totalBurstTime;
@@ -22,6 +29,7 @@ public class Process {
         this.memoryRequirement = memoryRequirement;
         this.processState = ProcessState.NEW;
         //this.filePath = Paths.get(Shell.tree.getCurrentFolder().getAbsolutePath() + "\\" + program);
+        loadInstructions();
     }
 
     // Getters and setters
@@ -33,18 +41,49 @@ public class Process {
     public int getMemoryRequirement() { return memoryRequirement; }
     public ProcessState getProcessState() { return processState; }
     public void setProcessState(ProcessState processState) { this.processState = processState; }
+    public ArrayList<String> getInstructions() { return instructions; }
+    public void setInstructions(ArrayList<String> instructions) { this.instructions = instructions; }
+    public Path getFilePath() { return filePath; }
 
-    public ArrayList<String> getInstructions() {
-        return instructions;
+    public int[] getValuesOfRegisters() {
+        return registerValues;
     }
 
-    public void setInstructions(ArrayList<String> instructions) {
-        this.instructions = instructions;
+    public void setValuesOfRegisters(int[] registerValues) {
+        this.registerValues = registerValues;
     }
 
-    public Path getFilePath() {
-        return filePath;
+    public int getPcValue() {
+        return pcValue;
     }
 
-    // TODO: Add function to convert assembler instructions to machine instructions
+    public void setPcValue(int pcValue) {
+        this.pcValue = pcValue;
+    }
+
+    private void loadInstructions() {
+        try {
+            List<String> lines = Files.readAllLines(filePath);
+            for (String line : lines) {
+                String machineInstruction = Shell.asemblerToMachineInstruction(line);
+                if (machineInstruction != null) {
+                    instructions.add(machineInstruction);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading program file: " + e.getMessage());
+        }
+    }
+
+    // Function to convert assembler instructions to machine instructions
+    public void convertAssemblerInstructionsToMachineInstructions() {
+        ArrayList<String> machineInstructions = new ArrayList<>();
+        for (String instruction : instructions) {
+            String machineInstruction = Shell.asemblerToMachineInstruction(instruction);
+            if (machineInstruction != null) {
+                machineInstructions.add(machineInstruction);
+            }
+        }
+        setInstructions(machineInstructions);
+    }
 }

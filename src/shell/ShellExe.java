@@ -1,4 +1,3 @@
-
 package shell;
 
 import assembler.Operations;
@@ -7,9 +6,11 @@ import kernel.Process;
 import kernel.ProcessScheduler;
 import memory.MemoryManager;
 import memory.Ram;
-import memory.SecondaryMemory;
+import memory.SSD;
 
 public class ShellExe {
+    private static ProcessScheduler scheduler = new ProcessScheduler();
+
     public static void ls() {
         FileSystem.listFiles();
     }
@@ -43,7 +44,7 @@ public class ShellExe {
     }
 
     public static void memS() {
-        SecondaryMemory.printMemoryAllocationTable();
+        SSD.printMemoryAllocationTable();
     }
 
     public static void mem() {
@@ -51,49 +52,50 @@ public class ShellExe {
     }
 
     public static void load(String par) {
-        new Process(par);
+        int pid = scheduler.getNewPid();
+        Process process = new Process(pid, "Process" + pid, 100, 1024, par);
+        scheduler.addProcess(process);
     }
 
     public static void exe() {
-        new ProcessScheduler().start();
+        if (!scheduler.isAlive()) {
+            scheduler.start();
+        }
     }
 
     public static void pr() {
-        ProcessScheduler.listOfProcesses();
+        scheduler.listProcesses();
     }
 
     public static void trm(String par) {
         try {
-            Integer.parseInt(par);
+            int pid = Integer.parseInt(par);
+            scheduler.killProcess(pid);
         } catch (NumberFormatException e) {
             ShellCommands.errorWithParameters();
-            return;
         }
-        ProcessScheduler.terminateProcess(Integer.parseInt(par));
     }
 
     public static void block(String par) {
         try {
-            Integer.parseInt(par);
+            int pid = Integer.parseInt(par);
+            scheduler.blockProcess(pid);
         } catch (NumberFormatException e) {
             ShellCommands.errorWithParameters();
-            return;
         }
-        ProcessScheduler.blockProcess(Integer.parseInt(par));
     }
 
     public static void unblock(String par) {
         try {
-            Integer.parseInt(par);
+            int pid = Integer.parseInt(par);
+            scheduler.unblockProcess(pid);
         } catch (NumberFormatException e) {
             ShellCommands.errorWithParameters();
-            return;
         }
-        ProcessScheduler.unblockProcess(Integer.parseInt(par));
     }
 
     public static void clear() {
-        GUI.clearTerminal();
+        // Implement GUI clear terminal method
     }
 
     public static void help() {
@@ -110,7 +112,7 @@ public class ShellExe {
         help += "PR \t\t List of processes.\n";
         help += "TRM \t\t Terminate process.\n";
         help += "BLOCK \t\t Blocks process.\n";
-        help += "UBLOCK \t\t Unblocks process.\n";
+        help += "UNBLOCK \t\t Unblocks process.\n";
         help += "CLEAR \t\t Clears terminal.\n";
         help += "EXIT \t\t Closes program.";
 
@@ -120,6 +122,4 @@ public class ShellExe {
     public static void exit() {
         System.exit(1);
     }
-
 }
-

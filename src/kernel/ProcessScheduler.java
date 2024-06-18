@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
 
-public class ProcessScheduler {
+public class ProcessScheduler extends Thread {
     private PriorityQueue<Process> processQueue;
     private Map<Integer, Process> processTable;
     private int nextPid;
@@ -29,29 +29,41 @@ public class ProcessScheduler {
         System.out.println("Process added: " + process.getProcessName());
     }
 
-    public synchronized void schedule() {
+    @Override
+    public void run() {
         isRunning = true;
-        while (isRunning && !processQueue.isEmpty()) {
-            Process p = processQueue.poll();
-            p.setProcessState(ProcessState.RUNNING);
-            System.out.println("Running process: " + p.getProcessName());
-            // Simulate process running
-            int timeSlice = Math.min(10, p.getRemainingBurstTime()); // Run for a maximum of 10 time units
-            try {
-                Thread.sleep(timeSlice * 100); // Simulating time taken by process
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            p.setRemainingBurstTime(p.getRemainingBurstTime() - timeSlice);
-            if (p.getRemainingBurstTime() > 0) {
-                // Process is not finished, add it back to the queue
-                processQueue.add(p);
-            } else {
-                p.setProcessState(ProcessState.TERMINATED);
-                System.out.println("Process " + p.getProcessName() + " finished.");
+        while (isRunning) {
+            Process p = getNextProcess();
+            if (p != null) {
+                executeProcess(p);
             }
         }
-        isRunning = false;
+    }
+
+    private synchronized Process getNextProcess() {
+        if (!processQueue.isEmpty()) {
+            return processQueue.poll();
+        }
+        return null;
+    }
+
+    private void executeProcess(Process p) {
+        p.setProcessState(ProcessState.RUNNING);
+        System.out.println("Running process: " + p.getProcessName());
+        int timeSlice = Math.min(10, p.getRemainingBurstTime());
+        try {
+            Thread.sleep(timeSlice * 100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        p.setRemainingBurstTime(p.getRemainingBurstTime() - timeSlice);
+        if (p.getRemainingBurstTime() > 0) {
+            p.setProcessState(ProcessState.READY);
+            addProcess(p);
+        } else {
+            p.setProcessState(ProcessState.TERMINATED);
+            System.out.println("Process " + p.getProcessName() + " finished.");
+        }
     }
 
     public void listProcesses() {
@@ -65,14 +77,35 @@ public class ProcessScheduler {
         if (p != null && p.getProcessState() != ProcessState.TERMINATED) {
             p.setProcessState(ProcessState.TERMINATED);
             System.out.println("Process " + p.getProcessName() + " killed.");
-            // Remove the process from the queue if it's still there
             processQueue.remove(p);
         } else {
             System.out.println("Process not found or already terminated.");
         }
     }
 
+    public synchronized void blockProcess(int pid) {
+        Process p = processTable.get(pid);
+        if (p != null && p.getProcessState() == ProcessState.RUNNING) {
+            p.setProcessState(ProcessState.BLOCKED);
+            System.out.println("Process " + p.getProcessName() + " blocked.");
+        } else {
+            System.out.println("Process not found or not running.");
+        }
+    }
+
+    public synchronized void unblockProcess(int pid) {
+        Process p = processTable.get(pid);
+        if (p != null && p.getProcessState() == ProcessState.BLOCKED) {
+            p.setProcessState(ProcessState.READY);
+            processQueue.add(p);
+            System.out.println("Process " + p.getProcessName() + " unblocked.");
+        } else {
+            System.out.println("Process not found or not blocked.");
+        }
+    }
+
     public synchronized void stopScheduler() {
         isRunning = false;
+        this.interrupt();
     }
 }
