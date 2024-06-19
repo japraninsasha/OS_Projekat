@@ -1,0 +1,4 @@
+LOAD R1, 5
+LOAD R2, 3
+MUL R1, R2
+HALT
