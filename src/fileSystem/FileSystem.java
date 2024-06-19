@@ -36,10 +36,13 @@ public class FileSystem {
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(folder.toPath())) {
             for (Path path : directoryStream) {
                 if (Files.isDirectory(path)) {
-                    loadFilesIntoMemory(new Directory(path.toFile().getName()));
+                    Directory subDir = new Directory(path.getFileName().toString());
+                    folder.addDirectory(subDir);
+                    loadFilesIntoMemory(subDir);
                 } else {
                     byte[] content = Files.readAllBytes(path);
                     MemoryFile newFile = new MemoryFile(path.getFileName().toString(), content);
+                    folder.addFile(new File(path.getFileName().toString(), content.length, 0)); // Assuming start block is 0 for simplicity
                     if (!Shell.memory.contains(path.getFileName().toString())) {
                         Shell.memory.save(newFile);
                     }
@@ -83,7 +86,7 @@ public class FileSystem {
             DiskRequest writeRequest = new DiskRequest(startBlock, false, content);
             simulatedDisk.addRequest(writeRequest);
             MemoryFile newFile = new MemoryFile(fileName, content);
-            currentFolder.addFile(new fileSystem.File(fileName, content.length, startBlock));
+            currentFolder.addFile(new File(fileName, content.length, startBlock));
             Shell.memory.save(newFile);
         } else {
             System.out.println("Not enough space to create file");
@@ -91,7 +94,7 @@ public class FileSystem {
     }
 
     public static void deleteFile(String fileName) {
-        fileSystem.File file = currentFolder.getFile(fileName);
+        File file = currentFolder.getFile(fileName);
         if (file != null) {
             diskManager.deallocate(file.getStartBlock(), file.getSize());
             DiskRequest deleteRequest = new DiskRequest(file.getStartBlock(), false, null);
