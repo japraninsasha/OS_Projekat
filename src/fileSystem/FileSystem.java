@@ -1,29 +1,32 @@
 package fileSystem;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
-import assembler.Operations;
+import devices.DiskRequest;
+import devices.SimulatedDisk;
 import kernel.Process;
 import memory.MemoryFile;
 import shell.Shell;
 
 public class FileSystem {
-    private static File rootFolder;
-    private static File currentFolder;
+    private static Directory rootFolder;
+    private static Directory currentFolder;
+    private static DiskManager diskManager;
+    private static SimulatedDisk simulatedDisk;
 
-    public FileSystem(File path) {
-        rootFolder = path;
+    public FileSystem(String rootPath, int diskSize) {
+        rootFolder = new Directory(rootPath);
         currentFolder = rootFolder;
-        loadFilesIntoMemory(currentFolder);
+        diskManager = new DiskManager(diskSize);
+        simulatedDisk = new SimulatedDisk();
+        loadFilesIntoMemory(rootFolder);
     }
 
-    private void loadFilesIntoMemory(File folder) {
+    private void loadFilesIntoMemory(Directory folder) {
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(folder.toPath())) {
             for (Path path : directoryStream) {
                 if (Files.isDirectory(path)) {
@@ -42,115 +45,67 @@ public class FileSystem {
     }
 
     public static void listFiles() {
-        System.out.println("Content of: " + currentFolder.getName());
-        System.out.println("Type\tName\t\t\tSize");
-        File[] files = currentFolder.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                byte[] fileContent = null;
-                try {
-                    if (!file.isDirectory())
-                        fileContent = Files.readAllBytes(file.toPath());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                System.out.println(file.isDirectory() ? ("Folder \t" + file.getName())
-                        : ("File" + "\t" + file.getName()
-                        + (file.getName().length() < 16 ? "\t\t" + fileContent.length + " B"
-                        : "\t" + fileContent.length + " B")));
-            }
-        }
+        currentFolder.listFiles();
     }
 
     public static void changeDirectory(String directory) {
-        if (directory.equals("..") && !currentFolder.equals(rootFolder)) {
-            currentFolder = currentFolder.getParentFile();
-        } else {
-            File newDir = new File(currentFolder, directory);
-            if (newDir.isDirectory()) {
-                currentFolder = newDir;
-            } else {
-                System.out.println("No such directory: " + directory);
-            }
-        }
-    }
-
-    public static void makeDirectory(String directory) {
-        File folder = new File(currentFolder, directory);
-        if (!folder.exists()) {
-            folder.mkdir();
-        } else {
-            System.out.println("Directory already exists: " + directory);
-        }
-    }
-
-    public static void deleteDirectory(String directory) {
-        File folder = new File(currentFolder, directory);
-        if (folder.exists() && folder.isDirectory()) {
-            deleteRecursively(folder);
+        Directory newDir = currentFolder.getSubDirectory(directory);
+        if (newDir != null) {
+            currentFolder = newDir;
+        } else if (directory.equals("..") && currentFolder.getParent() != null) {
+            currentFolder = currentFolder.getParent();
         } else {
             System.out.println("No such directory: " + directory);
         }
     }
 
-    private static void deleteRecursively(File file) {
-        File[] allContents = file.listFiles();
-        if (allContents != null) {
-            for (File content : allContents) {
-                deleteRecursively(content);
-            }
-        }
-        file.delete();
+    public static void makeDirectory(String directory) {
+        currentFolder.addDirectory(new Directory(directory));
+    }
+
+    public static void deleteDirectory(String directory) {
+        currentFolder.removeDirectory(directory);
     }
 
     public static void renameDirectory(String oldName, String newName) {
-        File oldDir = new File(currentFolder, oldName);
-        File newDir = new File(currentFolder, newName);
-        if (oldDir.exists() && oldDir.isDirectory()) {
-            oldDir.renameTo(newDir);
+        currentFolder.renameDirectory(oldName, newName);
+    }
+
+    public static void createFile(String fileName, byte[] content) {
+        int startBlock = diskManager.allocate(content.length);
+        if (startBlock != -1) {
+            DiskRequest writeRequest = new DiskRequest(startBlock, false, content);
+            simulatedDisk.addRequest(writeRequest);
+            MemoryFile newFile = new MemoryFile(fileName, content);
+            currentFolder.addFile(new fileSystem.File(fileName, content.length, startBlock));
+            Shell.memory.save(newFile);
         } else {
-            System.out.println("No such directory: " + oldName);
+            System.out.println("Not enough space to create file");
         }
     }
 
-    public static void createFile(Process process) {
-        String processName = process.getProcessName();
-        int dotIndex = processName.indexOf('.');
-        String name;
-        if (dotIndex != -1) {
-            name = processName.substring(0, dotIndex) + "_output";
+    public static void deleteFile(String fileName) {
+        fileSystem.File file = currentFolder.getFile(fileName);
+        if (file != null) {
+            diskManager.deallocate(file.getStartBlock(), file.getSize());
+            DiskRequest deleteRequest = new DiskRequest(file.getStartBlock(), false, null);
+            simulatedDisk.addRequest(deleteRequest);
+            currentFolder.removeFile(fileName);
+            Shell.memory.deleteFile(Shell.memory.getFile(fileName));
         } else {
-            name = processName + "_output";
-        }
-
-        File newFile = new File(process.getFilePath().getParent().toFile(), name + ".txt");
-        try {
-            if (newFile.createNewFile()) {
-                try (FileWriter fw = new FileWriter(newFile)) {
-                    fw.write("Rezultat izvrsavanja: " + Operations.R4.value);
-                }
-            } else {
-                System.out.println("File already exists: " + newFile.getName());
-            }
-        } catch (IOException e) {
-            System.out.println("Error while creating file");
+            System.out.println("No such file: " + fileName);
         }
     }
 
-
-    public static void deleteFile(String name) {
-        File file = new File(currentFolder, name);
-        if (file.exists() && !file.isDirectory()) {
-            file.delete();
-            if (Shell.memory.contains(name)) {
-                Shell.memory.deleteFile(Shell.memory.getFile(name));
-            }
-        } else {
-            System.out.println("No such file: " + name);
-        }
+    public static void processDiskRequests() {
+        simulatedDisk.processNextRequest();
     }
 
-    public static File getCurrentFolder() {
+    public static void printRequestQueue() {
+        simulatedDisk.printRequestQueue();
+    }
+
+    public static Directory getCurrentFolder() {
         return currentFolder;
     }
 }
