@@ -37,7 +37,7 @@ public class SimulatedDisk {
     }
 
     private void writeToFile(DiskRequest request) {
-        if (request != null && request.getContent() != null) {
+        /*if (request != null && request.getContent() != null) {
             Path path = Paths.get("output_files", "file_" + request.getStartBlock() + ".txt");
             try {
                 Files.createDirectories(path.getParent());
@@ -48,6 +48,6 @@ public class SimulatedDisk {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
     }
 }
