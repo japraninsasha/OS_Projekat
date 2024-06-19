@@ -170,8 +170,8 @@ public class SSD {
         for (MemoryFile file : files) {
             String fileName = file.getName();
             System.out.println(fileName + (fileName.length() < 16
-                    ? ("\t\t" + file.getStart().block.getAdress() + "\t\t" + file.getLength())
-                    : ("\t" + file.getStart().block.getAdress() + "\t\t" + file.getLength())));
+                    ? ("\t\t" + file.getStart().block.getAddress() + "\t\t" + file.getLength())
+                    : ("\t" + file.getStart().block.getAddress() + "\t\t" + file.getLength())));
         }
     }
 

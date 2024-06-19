@@ -134,7 +134,4 @@ public class ProcessScheduler extends Thread {
         return readyQueue;
     }
 
-    public int getTimeQuantum() {
-        return 1;
-    }
 }

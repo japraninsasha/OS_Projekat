@@ -3,16 +3,16 @@ package memory;
 public class Block {
     private final static int SIZE = 4;
     private byte[] content = new byte[SIZE];
-    private final int adress;
+    private final int address;
     private boolean occupied;
 
-    public Block(int adress) {
-        this.adress = adress;
+    public Block(int address) {
+        this.address = address;
         setOccupied(false);
     }
 
-    public int getAdress() {
-        return adress;
+    public int getAddress() {
+        return address;
     }
 
     public static int getSize() {
@@ -36,6 +36,6 @@ public class Block {
     }
 
     public String toString() {
-        return "Block adress: " + adress;
+        return "Block adress: " + address;
     }
 }
