@@ -114,17 +114,29 @@ public class FileSystem {
     }
 
     public static void createFile(Process process) {
-        String name = process.getProcessName().substring(0, process.getProcessName().indexOf('.')) + "_output";
+        String processName = process.getProcessName();
+        int dotIndex = processName.indexOf('.');
+        String name;
+        if (dotIndex != -1) {
+            name = processName.substring(0, dotIndex) + "_output";
+        } else {
+            name = processName + "_output";
+        }
+
         File newFile = new File(process.getFilePath().getParent().toFile(), name + ".txt");
         try {
-            newFile.createNewFile();
-            FileWriter fw = new FileWriter(newFile);
-            fw.write("Rezultat izvrsavanja: " + Operations.R4.value);
-            fw.close();
+            if (newFile.createNewFile()) {
+                try (FileWriter fw = new FileWriter(newFile)) {
+                    fw.write("Rezultat izvrsavanja: " + Operations.R4.value);
+                }
+            } else {
+                System.out.println("File already exists: " + newFile.getName());
+            }
         } catch (IOException e) {
             System.out.println("Error while creating file");
         }
     }
+
 
     public static void deleteFile(String name) {
         File file = new File(currentFolder, name);
