@@ -75,13 +75,19 @@ public class Operations {
     }
 
     public static void div(String val) {
+        int divisor = 1;
         if (val.length() == 8) { // Vrednost
-            ACC /= Integer.parseInt(val, 2);
+            divisor = Integer.parseInt(val, 2);
         } else if (val.length() == 4) { // Registar
             Register r = getRegister(val);
             if (r != null) {
-                ACC /= r.value;
+                divisor = r.value;
             }
+        }
+        if (divisor != 0) {
+            ACC /= divisor;
+        } else {
+            System.out.println("Error: Division by zero");
         }
     }
 
@@ -107,6 +113,17 @@ public class Operations {
         Shell.PC = temp;
     }
 
+    public static void jmpz(String adr) {
+        if (ACC == 0) {
+            jmp(adr);
+        }
+    }
+
+    public static void jmpn(String adr) {
+        if (ACC < 0) {
+            jmp(adr);
+        }
+    }
 
     private static Register getRegister(String adr) {
         switch (adr) {
@@ -139,6 +156,4 @@ public class Operations {
         R4.value = 0;
         ACC = 0;
     }
-
-
 }
