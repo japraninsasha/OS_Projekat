@@ -69,8 +69,17 @@ public class FileSystem {
     }
 
     public static void makeDirectory(String directory) {
-        currentFolder.addDirectory(new Directory(directory));
+        Directory newDir = new Directory(directory);
+        currentFolder.addDirectory(newDir);
+        Path newDirPath = Paths.get(currentFolder.getAbsolutePath(), directory);
+        try {
+            Files.createDirectory(newDirPath);
+            System.out.println("Directory " + directory + " created successfully.");
+        } catch (IOException e) {
+            System.out.println("Failed to create directory " + directory + ": " + e.getMessage());
+        }
     }
+
 
     public static void deleteDirectory(String directory) {
         currentFolder.removeDirectory(directory);
