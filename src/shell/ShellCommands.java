@@ -1,17 +1,12 @@
 package shell;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 
 public class ShellCommands {
-    private static String command;
-    private static ArrayList<String> commandList = new ArrayList<String>();
+    private static ArrayList<String> commandList = new ArrayList<>();
     private static int iter;
 
-    public static void returnCommand() {
+    public static void readCommand(String command) {
         commandList.add(command);
         iter = commandList.size();
         command = command.toLowerCase();
@@ -19,7 +14,6 @@ public class ShellCommands {
         commands = command.split(" ");
 
         switch (commands[0]) {
-
             case "ls":
                 if (commands.length == 1) {
                     ShellExe.ls();
@@ -153,51 +147,7 @@ public class ShellCommands {
         }
     }
 
-    public static String previous() {
-        String rez = "";
-        if (!commandList.isEmpty()) {
-            if (iter >= 0) {
-                iter--;
-                if (iter <= 0)
-                    iter = 0;
-                rez = commandList.get(iter);
-            }
-        }
-        return rez;
-    }
-
-    public static String next() {
-        String rez = "";
-        if (!commandList.isEmpty())
-            if (iter < commandList.size() - 1) {
-                iter++;
-                if (iter > commandList.size() - 1)
-                    iter = commandList.size() - 1;
-                rez = commandList.get(iter);
-            }
-        return rez;
-    }
-
-    public static void readACommand(PipedInputStream inp, int len) {
-        command = "";
-        char c;
-
-        for (int i = 0; i < len; i++) {
-            try {
-                c = (char) inp.read();
-                command += c;
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.out.println("Error while reading a command");
-            }
-        }
-    }
-
-    public static void setOut(OutputStream out) {
-        System.setOut(new PrintStream(out, true));
-    }
-
-    static void errorWithParameters() {
+    public static void errorWithParameters() {
         String s = "Parameters for command are incorrect!\n";
         System.out.println(s);
     }

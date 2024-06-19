@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import assembler.Operations;
-import javafx.scene.control.TreeItem;
 import kernel.Process;
 import memory.MemoryFile;
 import shell.Shell;
@@ -17,29 +16,24 @@ import shell.Shell;
 public class FileSystem {
     private static File rootFolder;
     private static File currentFolder;
-    private TreeItem<File> treeItem;
 
     public FileSystem(File path) {
         rootFolder = path;
         currentFolder = rootFolder;
-        treeItem = new TreeItem<>(rootFolder);
-        createTree(treeItem);
+        loadFilesIntoMemory(currentFolder);
     }
 
-    public void createTree(TreeItem<File> rootItem) {
-        try (DirectoryStream<Path> directoryStream = Files
-                .newDirectoryStream(Paths.get(rootItem.getValue().getAbsolutePath()))) {
+    private void loadFilesIntoMemory(File folder) {
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(folder.toPath())) {
             for (Path path : directoryStream) {
-                TreeItem<File> newItem = new TreeItem<>(path.toFile());
-                newItem.setExpanded(false);
-                rootItem.getChildren().add(newItem);
-                if (Files.isDirectory(path))
-                    createTree(newItem);
-                else { // Učitava fajlove u sekundarnu memoriju
-                    byte[] content = Files.readAllBytes(newItem.getValue().toPath());
-                    MemoryFile newFile = new MemoryFile(newItem.getValue().getName(), content);
-                    if (!Shell.memory.contains(newItem.getValue().getName()))
+                if (Files.isDirectory(path)) {
+                    loadFilesIntoMemory(path.toFile());
+                } else {
+                    byte[] content = Files.readAllBytes(path);
+                    MemoryFile newFile = new MemoryFile(path.getFileName().toString(), content);
+                    if (!Shell.memory.contains(path.getFileName().toString())) {
                         Shell.memory.save(newFile);
+                    }
                 }
             }
         } catch (IOException e) {
@@ -47,27 +41,24 @@ public class FileSystem {
         }
     }
 
-    public TreeItem<File> getTreeItem() {
-        treeItem = new TreeItem<>(currentFolder);
-        createTree(treeItem);
-        return treeItem;
-    }
-
     public static void listFiles() {
         System.out.println("Content of: " + currentFolder.getName());
         System.out.println("Type\tName\t\t\tSize");
-        for (TreeItem<File> file : Shell.tree.getTreeItem().getChildren()) {
-            byte[] fileContent = null;
-            try {
-                if (!file.getValue().isDirectory())
-                    fileContent = Files.readAllBytes(file.getValue().toPath());
-            } catch (IOException e) {
-                e.printStackTrace();
+        File[] files = currentFolder.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                byte[] fileContent = null;
+                try {
+                    if (!file.isDirectory())
+                        fileContent = Files.readAllBytes(file.toPath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                System.out.println(file.isDirectory() ? ("Folder \t" + file.getName())
+                        : ("File" + "\t" + file.getName()
+                        + (file.getName().length() < 16 ? "\t\t" + fileContent.length + " B"
+                        : "\t" + fileContent.length + " B")));
             }
-            System.out.println(file.getValue().isDirectory() ? ("Folder \t" + file.getValue().getName())
-                    : ("File" + "\t" + file.getValue().getName()
-                    + (file.getValue().getName().length() < 16 ? "\t\t" + fileContent.length + " B"
-                    : "\t" + fileContent.length + " B")));
         }
     }
 
@@ -75,39 +66,56 @@ public class FileSystem {
         if (directory.equals("..") && !currentFolder.equals(rootFolder)) {
             currentFolder = currentFolder.getParentFile();
         } else {
-            for (TreeItem<File> file : Shell.tree.getTreeItem().getChildren()) {
-                if (file.getValue().getName().equals(directory) &&
-                        file.getValue().isDirectory()) {
-                    currentFolder = new File(currentFolder, directory);
-                }
+            File newDir = new File(currentFolder, directory);
+            if (newDir.isDirectory()) {
+                currentFolder = newDir;
+            } else {
+                System.out.println("No such directory: " + directory);
             }
         }
     }
 
     public static void makeDirectory(String directory) {
-        File folder = new File(currentFolder + "\\" + directory);
+        File folder = new File(currentFolder, directory);
         if (!folder.exists()) {
             folder.mkdir();
+        } else {
+            System.out.println("Directory already exists: " + directory);
         }
     }
 
     public static void deleteDirectory(String directory) {
-        for (TreeItem<File> file : Shell.tree.getTreeItem().getChildren()) {
-            if (file.getValue().getName().equals(directory) && file.getValue().isDirectory())
-                file.getValue().delete();
+        File folder = new File(currentFolder, directory);
+        if (folder.exists() && folder.isDirectory()) {
+            deleteRecursively(folder);
+        } else {
+            System.out.println("No such directory: " + directory);
         }
     }
 
-    public static void renameDirectory(String old, String newName) {
-        for (TreeItem<File> file : Shell.tree.getTreeItem().getChildren()) {
-            if (file.getValue().getName().equals(old) && file.getValue().isDirectory())
-                file.getValue().renameTo(new File(currentFolder.getAbsolutePath() + "\\" + newName));
+    private static void deleteRecursively(File file) {
+        File[] allContents = file.listFiles();
+        if (allContents != null) {
+            for (File content : allContents) {
+                deleteRecursively(content);
+            }
+        }
+        file.delete();
+    }
+
+    public static void renameDirectory(String oldName, String newName) {
+        File oldDir = new File(currentFolder, oldName);
+        File newDir = new File(currentFolder, newName);
+        if (oldDir.exists() && oldDir.isDirectory()) {
+            oldDir.renameTo(newDir);
+        } else {
+            System.out.println("No such directory: " + oldName);
         }
     }
 
     public static void createFile(Process process) {
         String name = process.getProcessName().substring(0, process.getProcessName().indexOf('.')) + "_output";
-        File newFile = new File(process.getFilePath().getParent() + "\\" + name + ".txt");
+        File newFile = new File(process.getFilePath().getParent().toFile(), name + ".txt");
         try {
             newFile.createNewFile();
             FileWriter fw = new FileWriter(newFile);
@@ -119,16 +127,18 @@ public class FileSystem {
     }
 
     public static void deleteFile(String name) {
-        for (TreeItem<File> file : Shell.tree.getTreeItem().getChildren()) {
-            if (file.getValue().getName().equals(name) && !file.getValue().isDirectory())
-                file.getValue().delete();
+        File file = new File(currentFolder, name);
+        if (file.exists() && !file.isDirectory()) {
+            file.delete();
             if (Shell.memory.contains(name)) {
                 Shell.memory.deleteFile(Shell.memory.getFile(name));
             }
+        } else {
+            System.out.println("No such file: " + name);
         }
     }
 
-    public File getCurrentFolder() {
+    public static File getCurrentFolder() {
         return currentFolder;
     }
 }

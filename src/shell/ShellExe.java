@@ -8,6 +8,8 @@ import memory.MemoryManager;
 import memory.Ram;
 import memory.SSD;
 
+import java.io.IOException;
+
 public class ShellExe {
     private static ProcessScheduler scheduler = new ProcessScheduler();
 
@@ -95,7 +97,7 @@ public class ShellExe {
     }
 
     public static void clear() {
-        GUI.clearTerminal();
+        //todo
     }
 
     public static void help() {
