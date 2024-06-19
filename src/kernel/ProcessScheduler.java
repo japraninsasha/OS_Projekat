@@ -1,5 +1,7 @@
 package kernel;
 
+import shell.Shell;
+
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,15 +50,33 @@ public class ProcessScheduler extends Thread {
     }
 
     private void executeProcess(Process p) {
+        Shell.currentlyExecuting = p;
+        Shell.loadValues(); // Učitaj vrednosti registara i PC
+
         p.setProcessState(ProcessState.RUNNING);
         System.out.println("Running process: " + p.getProcessName());
-        int timeSlice = Math.min(10, p.getRemainingBurstTime());
-        try {
-            Thread.sleep(timeSlice * 100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+
+        while (p.getRemainingBurstTime() > 0 && p.getProcessState() == ProcessState.RUNNING) {
+            if (Shell.PC >= Shell.limit) {
+                p.setProcessState(ProcessState.TERMINATED);
+                System.out.println("Error: Program counter out of bounds in process " + p.getProcessName());
+                break;
+            }
+
+            Shell.IR = Shell.memory.getInstruction(Shell.PC); // Pretpostavimo da postoji metoda getInstruction
+            Shell.executeMachineInstruction();
+
+            p.setRemainingBurstTime(p.getRemainingBurstTime() - 1);
+
+            try {
+                Thread.sleep(100); // Simulacija vremena izvršavanja
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            Shell.saveValues(); // Sačuvaj trenutne vrednosti registara i PC
         }
-        p.setRemainingBurstTime(p.getRemainingBurstTime() - timeSlice);
+
         if (p.getRemainingBurstTime() > 0) {
             p.setProcessState(ProcessState.READY);
             addProcess(p);
@@ -102,10 +122,5 @@ public class ProcessScheduler extends Thread {
         } else {
             System.out.println("Process not found or not blocked.");
         }
-    }
-
-    public synchronized void stopScheduler() {
-        isRunning = false;
-        this.interrupt();
     }
 }

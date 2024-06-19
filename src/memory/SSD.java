@@ -175,6 +175,26 @@ public class SSD {
         }
     }
 
+    public void loadProgram(String[] program, int baseAddress) {
+        for (int i = 0; i < program.length; i++) {
+            blocks[baseAddress + i].setOccupied(true);
+            blocks[baseAddress + i].setContent(program[i].getBytes());
+        }
+    }
+
+    public String getInstruction(int address) {
+        if (address >= 0 && address < blocks.length) {
+            byte[] content = blocks[address].getContent();
+            if (content != null) {
+                return new String(content).trim();
+            } else {
+                return ""; // Prazan sadržaj
+            }
+        } else {
+            throw new IndexOutOfBoundsException("Invalid memory address");
+        }
+    }
+
     protected static class Pointer {
         private Block block;
         private Pointer next;
