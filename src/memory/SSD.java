@@ -195,7 +195,7 @@ public class SSD {
         }
     }
 
-    protected static class Pointer {
+    protected static class  Pointer {
         private Block block;
         private Pointer next;
 
