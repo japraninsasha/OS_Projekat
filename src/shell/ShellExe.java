@@ -53,7 +53,7 @@ public class ShellExe {
     }
 
     public static void load(String par) {
-        int pid = scheduler.getNewPid();
+        int pid = scheduler.getNewPID();
         Process process = new Process(pid, "Process" + pid, 100, 1024, par);
         scheduler.addProcess(process);
     }
@@ -65,13 +65,13 @@ public class ShellExe {
     }
 
     public static void pr() {
-        scheduler.listProcesses();
+        scheduler.listOfProcesses();
     }
 
     public static void trm(String par) {
         try {
             int pid = Integer.parseInt(par);
-            scheduler.killProcess(pid);
+            scheduler.terminateProcess(pid);
         } catch (NumberFormatException e) {
             ShellCommands.errorWithParameters();
         }

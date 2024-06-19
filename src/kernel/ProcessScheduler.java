@@ -15,6 +15,7 @@ public class ProcessScheduler extends Thread {
 
     public static PriorityQueue<Process> readyQueue;
     public static ArrayList<Process> allProcesses = new ArrayList<>();
+    private static int nextPID = 1;
 
     public ProcessScheduler() {
         readyQueue = new PriorityQueue<>(Comparator.comparingInt(Process::getRemainingBurstTime));
@@ -100,7 +101,7 @@ public class ProcessScheduler extends Thread {
         System.out.println("Process with PID " + pid + " doesn't exist, check and try again");
     }
 
-    public static void terminateProcess(Integer pid) {
+    public void terminateProcess(Integer pid) {
         if (pid < allProcesses.size()) {
             allProcesses.get(pid).setState(ProcessState.TERMINATED);
             MemoryManager.removeProcess(allProcesses.get(pid));
@@ -109,7 +110,16 @@ public class ProcessScheduler extends Thread {
         System.out.println("Process with PID " + pid + " doesn't exist, check and try again");
     }
 
-    public static void listOfProcesses() {
+    public int getNewPID() {
+        return nextPID++;
+    }
+
+    public static void addProcess(Process process) {
+        allProcesses.add(process);
+        readyQueue.add(process);
+    }
+
+    public void listOfProcesses() {
         System.out.println("PID\tProgram\t\tSize\tState\t\tCurrent occupation of memory");
         for (Process process : allProcesses) {
             System.out.println(process.getProcessId() + "\t" + process.getProcessName() + "\t " + process.getMemoryRequirement() + "\t"
