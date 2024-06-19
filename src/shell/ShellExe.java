@@ -52,6 +52,16 @@ public class ShellExe {
         MemoryManager.printMemory();
     }
 
+    public static void cf(String fileName, String fileContent) {
+        byte[] contentBytes = fileContent.getBytes();
+        boolean success = FileSystem.createFile(fileName, contentBytes);
+        if (success) {
+            System.out.println("File " + fileName + " created successfully.");
+        } else {
+            System.out.println("Failed to create file " + fileName + ".");
+        }
+    }
+
     public static void load(String par) {
         int pid = scheduler.getNewPID();
         Process process = new Process(pid, "Process" + pid, 100, 1024, par);

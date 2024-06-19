@@ -142,6 +142,16 @@ public class ShellCommands {
                     errorWithParameters();
                 break;
 
+            case "cf":
+                if (commands.length >= 3) {
+                    String fileName = commands[1];
+                    String fileContent = command.substring(command.indexOf(fileName) + fileName.length()).trim();
+                    ShellExe.cf(fileName, fileContent);
+                } else {
+                    errorWithParameters();
+                }
+                break;
+
             default:
                 System.out.println("That command doesn't exist!");
         }

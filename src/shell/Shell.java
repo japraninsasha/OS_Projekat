@@ -23,7 +23,7 @@ public class Shell {
 
     public static void boot() {
         memory = new SSD();
-        tree = new FileSystem("Programs", 2048); // Pretpostavka da se disk veličina definiše kao 2048 blokova
+        tree = new FileSystem("C:\\Users\\sasaj\\Desktop\\ostest\\OS_Projekat\\Programs", 2048); // Pretpostavka da se disk veličina definiše kao 2048 blokova
         manager = new MemoryManager(4, 1024, 2048); // Inicijalizacija MemoryManager-a
     }
 

@@ -1,11 +1,12 @@
 package fileSystem;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.nio.charset.StandardCharsets;
 
 import assembler.Operations;
 import kernel.Process;
@@ -80,7 +81,6 @@ public class FileSystem {
         }
     }
 
-
     public static void deleteDirectory(String directory) {
         currentFolder.removeDirectory(directory);
     }
@@ -111,15 +111,22 @@ public class FileSystem {
             currentFolder.addFile(new File(fileName, content.length, startBlock));
             Shell.memory.save(newFile);
             processDiskRequests(); // Pozivanje obrade diskovnih zahteva odmah nakon dodavanja
-            System.out.println("File " + fileName + " created successfully.");
-            return true;
+
+            // Kreiranje fizičkog fajla na disku
+            Path filePath = Paths.get(currentFolder.getAbsolutePath(), fileName);
+            try {
+                Files.write(filePath, content, StandardOpenOption.CREATE);
+                System.out.println("File " + fileName + " created successfully.");
+                return true;
+            } catch (IOException e) {
+                System.out.println("Failed to create file " + fileName + ": " + e.getMessage());
+                return false;
+            }
         } else {
             System.out.println("Not enough space to create file");
             return false;
         }
     }
-
-
 
     public static void deleteFile(String fileName) {
         File file = currentFolder.getFile(fileName);
@@ -129,6 +136,15 @@ public class FileSystem {
             simulatedDisk.addRequest(deleteRequest);
             currentFolder.removeFile(fileName);
             Shell.memory.deleteFile(Shell.memory.getFile(fileName));
+
+            // Brisanje fizičkog fajla sa diska
+            Path filePath = Paths.get(currentFolder.getAbsolutePath(), fileName);
+            try {
+                Files.delete(filePath);
+                System.out.println("File " + fileName + " deleted successfully.");
+            } catch (IOException e) {
+                System.out.println("Failed to delete file " + fileName + ": " + e.getMessage());
+            }
         } else {
             System.out.println("No such file: " + fileName);
         }
