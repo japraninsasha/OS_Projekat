@@ -32,23 +32,24 @@ public class ProcessScheduler extends Thread {
 
     private void executeProcess(Process process) {
         Shell.currentlyExecuting = process;
+        int startAddress;
         if (process.getPcValue() == -1) {
             System.out.println("Process " + process.getName() + " started to execute");
-            int startAddress = Shell.manager.loadProcess(process);
-            process.setStartAddress(startAddress);
-            Shell.base = startAddress;
-            Shell.limit = process.getInstructions().size();
-            Shell.PC = 0;
-            process.setState(ProcessState.RUNNING);
+            startAddress = Shell.manager.loadProcess(process);
         } else {
             System.out.println("Process " + process.getName() + " is executing again");
-            int startAddress = Shell.manager.loadProcess(process);
-            process.setStartAddress(startAddress);
-            Shell.base = startAddress;
-            Shell.limit = process.getInstructions().size();
-            Shell.loadValues();
-            process.setState(ProcessState.RUNNING);
+            startAddress = Shell.manager.loadProcess(process);
         }
+        if (startAddress == -1) {
+            System.out.println("Not enough memory to load process " + process.getName());
+            return;
+        }
+        process.setStartAddress(startAddress);
+        Shell.base = startAddress;
+        Shell.limit = process.getInstructions().size();
+        Shell.PC = (process.getPcValue() == -1) ? 0 : process.getPcValue();
+        Shell.loadValues();
+        process.setState(ProcessState.RUNNING);
         execute(process);
     }
 
@@ -81,6 +82,8 @@ public class ProcessScheduler extends Thread {
             MemoryManager.removeProcess(process);
             if (!createOutputFileForProcess(process)) {
                 System.out.println("Not enough space, cannot create file");
+            } else {
+                System.out.println("Output file created for process: " + process.getName());
             }
         }
         Operations.clearRegisters();
@@ -91,7 +94,6 @@ public class ProcessScheduler extends Thread {
         String content = "Process " + process.getProcessName() + " has completed execution.";
         return FileSystem.createFile(fileName, content.getBytes());
     }
-
 
     public static void blockProcess(Integer pid) {
         if (pid < allProcesses.size()) {

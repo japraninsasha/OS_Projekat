@@ -20,14 +20,16 @@ public class SSD {
             blocks[i] = new Block(i);
         }
         files = new ArrayList<>();
+        System.out.println("SSD initialized with size: " + size);
     }
 
     public void save(MemoryFile file) {
         int requiredBlocks = calculateRequiredBlocks(file.getSize());
         if (numberOfFreeBlocks() >= requiredBlocks) {
             allocateBlocksToFile(file, requiredBlocks);
+            System.out.println("File " + file.getName() + " saved with required blocks: " + requiredBlocks);
         } else {
-            System.out.println("Not enough space, cannot create file");
+            System.out.println("Not enough space, cannot create file: " + file.getName());
         }
     }
 
@@ -63,10 +65,11 @@ public class SSD {
 
     public void deleteFile(MemoryFile file) {
         if (!files.contains(file)) {
-            System.out.println("Your file is not in the secondary memory");
+            System.out.println("Your file is not in the secondary memory: " + file.getName());
         } else {
             freeFileBlocks(file);
             files.remove(file);
+            System.out.println("File " + file.getName() + " deleted.");
         }
     }
 
@@ -81,6 +84,7 @@ public class SSD {
         }
         file.setStart(null);
     }
+
 
     public String readFile(MemoryFile file) {
         StringBuilder content = new StringBuilder();
@@ -100,14 +104,16 @@ public class SSD {
 
         if (requiredBlocks > occupiedBlocks) {
             if (numberOfFreeBlocks() < requiredBlocks - occupiedBlocks) {
-                System.out.println("Not enough space to update file, old version of file will be saved.");
+                System.out.println("Not enough space to update file " + file.getName() + ", old version of file will be saved.");
             } else {
                 deleteFile(file);
                 save(file);
+                System.out.println("File " + file.getName() + " updated.");
             }
         } else {
             deleteFile(file);
             save(file);
+            System.out.println("File " + file.getName() + " updated.");
         }
     }
 
@@ -118,6 +124,7 @@ public class SSD {
                 freeBlocks++;
             }
         }
+        System.out.println("Number of free blocks: " + freeBlocks);
         return freeBlocks;
     }
 
@@ -179,6 +186,7 @@ public class SSD {
         for (int i = 0; i < program.length; i++) {
             blocks[baseAddress + i].setOccupied(true);
             blocks[baseAddress + i].setContent(program[i].getBytes());
+            System.out.println("Program instruction loaded at address: " + (baseAddress + i));
         }
     }
 
@@ -195,7 +203,7 @@ public class SSD {
         }
     }
 
-    protected static class  Pointer {
+    protected static class Pointer {
         private Block block;
         private Pointer next;
 

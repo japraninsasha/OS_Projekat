@@ -39,8 +39,11 @@ public class MemoryManager {
         if (position != -1) {
             partition.setPositionInMemory(position);
             partitionsInRam.add(partition);
+            return position;
+        } else {
+            System.out.println("Not enough memory to load partition: " + partition.getProcess().getProcessId());
+            return -1; // Nema dovoljno memorije
         }
-        return position;
     }
 
     public int[] readProcess(Process process) {
@@ -63,10 +66,12 @@ public class MemoryManager {
             buddyAllocator.deallocate(partition.getPositionInMemory(), partition.getSize());
             partition.setPositionInMemory(-1);
             partitionsInRam.remove(partition);
+            System.out.println("Partition for process " + partition.getProcess().getProcessId() + " removed from memory.");
             return true;
         }
         return false;
     }
+
 
     public static int memoryOccupiedByProcess(Process process) {
         for (MemoryPartition partition : partitionsInRam) {
