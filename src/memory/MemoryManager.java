@@ -11,6 +11,7 @@ public class MemoryManager {
     public static ArrayList<MemoryPartition> partitionsInRam;
 
     public MemoryManager(int minBlockSize, int maxBlockSize, int totalSize) {
+        MemoryPartition.initialize();
         this.buddyAllocator = new BuddyAllocator(minBlockSize, maxBlockSize, totalSize);
         partitionsInRam = new ArrayList<>();
     }
