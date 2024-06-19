@@ -31,7 +31,7 @@ public class ProcessScheduler extends Thread {
 
     private void executeProcess(Process process) {
         Shell.currentlyExecuting = process;
-        if (process.getPcValue() == -1) { // Ovo je prvi put da se proces izvršava
+        if (process.getPcValue() == -1) {
             System.out.println("Process " + process.getName() + " started to execute");
             int startAddress = Shell.manager.loadProcess(process);
             process.setStartAddress(startAddress);
@@ -39,7 +39,7 @@ public class ProcessScheduler extends Thread {
             Shell.limit = process.getInstructions().size();
             Shell.PC = 0;
             process.setState(ProcessState.RUNNING);
-        } else { // Proces se nastavlja sa izvršavanjem
+        } else {
             System.out.println("Process " + process.getName() + " is executing again");
             int startAddress = Shell.manager.loadProcess(process);
             process.setStartAddress(startAddress);

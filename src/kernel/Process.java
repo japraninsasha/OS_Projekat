@@ -64,6 +64,19 @@ public class Process {
         this.pcValue = pcValue;
     }
 
+    public String getName() {
+        return processName;
+    }
+
+    public ProcessState getState() {
+        return processState;
+    }
+
+    public void setState(ProcessState processState) {
+        this.processState = processState;
+    }
+
+
     private void loadInstructions() {
         try {
             List<String> lines = Files.readAllLines(filePath);

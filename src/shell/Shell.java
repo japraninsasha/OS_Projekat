@@ -6,6 +6,7 @@ import kernel.Process;
 import kernel.ProcessScheduler;
 import kernel.ProcessState;
 import memory.SSD;
+import memory.MemoryManager;
 import fileSystem.FileSystem;
 
 import java.io.File;
@@ -15,6 +16,7 @@ public class Shell {
     public static SSD memory;
     public static FileSystem tree;
     public static Process currentlyExecuting = null;
+    public static MemoryManager manager; // Dodali smo polje manager
     public static int PC; // Program counter
     public static String IR; // Instruction register
     public static int base;
@@ -23,6 +25,7 @@ public class Shell {
     public static void boot() {
         memory = new SSD();
         tree = new FileSystem(new File("Programs")); // Pretpostavka da se programi nalaze u "Programs" folderu
+        manager = new MemoryManager(4, 1024, 2048); // Inicijalizacija MemoryManager-a
     }
 
     public static String asemblerToMachineInstruction(String command) {
