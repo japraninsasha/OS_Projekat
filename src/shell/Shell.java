@@ -4,7 +4,6 @@ import assembler.Constants;
 import assembler.Operations;
 import kernel.Process;
 import kernel.ProcessScheduler;
-import kernel.ProcessState;
 import memory.SSD;
 import memory.MemoryManager;
 import fileSystem.FileSystem;
@@ -24,7 +23,7 @@ public class Shell {
 
     public static void boot() {
         memory = new SSD();
-        tree = new FileSystem(new File("Programs")); // Pretpostavka da se programi nalaze u "Programs" folderu
+        tree = new FileSystem("Programs", 2048); // Pretpostavka da se disk veličina definiše kao 2048 blokova
         manager = new MemoryManager(4, 1024, 2048); // Inicijalizacija MemoryManager-a
     }
 

@@ -79,10 +79,17 @@ public class ProcessScheduler extends Thread {
         } else if (process.getState() == ProcessState.DONE) {
             System.out.println("Process " + process.getName() + " is done");
             MemoryManager.removeProcess(process);
-            FileSystem.createFile(process);
+            createOutputFileForProcess(process);
         }
         Operations.clearRegisters();
     }
+
+    private void createOutputFileForProcess(Process process) {
+        String fileName = process.getProcessName() + "_output.txt";
+        String content = "Process " + process.getProcessName() + " has completed execution.";
+        FileSystem.createFile(fileName, content.getBytes());
+    }
+
 
     public static void blockProcess(Integer pid) {
         if (pid < allProcesses.size()) {
@@ -133,5 +140,4 @@ public class ProcessScheduler extends Thread {
     public Queue<Process> getReadyQueue() {
         return readyQueue;
     }
-
 }

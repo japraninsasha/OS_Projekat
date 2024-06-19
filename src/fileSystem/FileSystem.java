@@ -6,11 +6,12 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import devices.DiskRequest;
-import devices.SimulatedDisk;
+import assembler.Operations;
 import kernel.Process;
 import memory.MemoryFile;
 import shell.Shell;
+import devices.DiskRequest;
+import devices.SimulatedDisk;
 
 public class FileSystem {
     private static Directory rootFolder;
@@ -30,7 +31,7 @@ public class FileSystem {
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(folder.toPath())) {
             for (Path path : directoryStream) {
                 if (Files.isDirectory(path)) {
-                    loadFilesIntoMemory(path.toFile());
+                    loadFilesIntoMemory(new Directory(path.getFileName().toString()));
                 } else {
                     byte[] content = Files.readAllBytes(path);
                     MemoryFile newFile = new MemoryFile(path.getFileName().toString(), content);

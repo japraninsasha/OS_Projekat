@@ -1,5 +1,7 @@
 package fileSystem;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -82,5 +84,15 @@ public class Directory {
     public void setParent(Directory parent) {
         this.parent = parent;
     }
-}
 
+    public Path toPath() {
+        if (parent == null) {
+            return Paths.get(name);
+        }
+        return parent.toPath().resolve(name);
+    }
+
+    public String getAbsolutePath() {
+        return toPath().toAbsolutePath().toString();
+    }
+}
