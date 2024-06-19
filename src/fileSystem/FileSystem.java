@@ -86,7 +86,20 @@ public class FileSystem {
     }
 
     public static void renameDirectory(String oldName, String newName) {
-        currentFolder.renameDirectory(oldName, newName);
+        Directory dirToRename = currentFolder.getSubDirectory(oldName);
+        if (dirToRename != null) {
+            Path oldDirPath = Paths.get(currentFolder.getAbsolutePath(), oldName);
+            Path newDirPath = Paths.get(currentFolder.getAbsolutePath(), newName);
+            try {
+                Files.move(oldDirPath, newDirPath);
+                dirToRename.setName(newName);
+                System.out.println("Directory renamed successfully.");
+            } catch (IOException e) {
+                System.out.println("Failed to rename directory: " + e.getMessage());
+            }
+        } else {
+            System.out.println("No such directory: " + oldName);
+        }
     }
 
     public static boolean createFile(String fileName, byte[] content) {
