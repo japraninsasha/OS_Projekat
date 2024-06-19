@@ -79,15 +79,17 @@ public class ProcessScheduler extends Thread {
         } else if (process.getState() == ProcessState.DONE) {
             System.out.println("Process " + process.getName() + " is done");
             MemoryManager.removeProcess(process);
-            createOutputFileForProcess(process);
+            if (!createOutputFileForProcess(process)) {
+                System.out.println("Not enough space, cannot create file");
+            }
         }
         Operations.clearRegisters();
     }
 
-    private void createOutputFileForProcess(Process process) {
+    private boolean createOutputFileForProcess(Process process) {
         String fileName = process.getProcessName() + "_output.txt";
         String content = "Process " + process.getProcessName() + " has completed execution.";
-        FileSystem.createFile(fileName, content.getBytes());
+        return FileSystem.createFile(fileName, content.getBytes());
     }
 
 

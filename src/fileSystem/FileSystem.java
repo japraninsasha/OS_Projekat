@@ -80,7 +80,7 @@ public class FileSystem {
         currentFolder.renameDirectory(oldName, newName);
     }
 
-    public static void createFile(String fileName, byte[] content) {
+    public static boolean createFile(String fileName, byte[] content) {
         int startBlock = diskManager.allocate(content.length);
         if (startBlock != -1) {
             DiskRequest writeRequest = new DiskRequest(startBlock, false, content);
@@ -88,10 +88,13 @@ public class FileSystem {
             MemoryFile newFile = new MemoryFile(fileName, content);
             currentFolder.addFile(new File(fileName, content.length, startBlock));
             Shell.memory.save(newFile);
+            return true;
         } else {
             System.out.println("Not enough space to create file");
+            return false;
         }
     }
+
 
     public static void deleteFile(String fileName) {
         File file = currentFolder.getFile(fileName);
