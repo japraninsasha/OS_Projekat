@@ -74,16 +74,4 @@ public class Process {
             System.out.println("Error reading program file: " + e.getMessage());
         }
     }
-
-    // Function to convert assembler instructions to machine instructions
-    public void convertAssemblerInstructionsToMachineInstructions() {
-        ArrayList<String> machineInstructions = new ArrayList<>();
-        for (String instruction : instructions) {
-            String machineInstruction = Shell.asemblerToMachineInstruction(instruction);
-            if (machineInstruction != null) {
-                machineInstructions.add(machineInstruction);
-            }
-        }
-        setInstructions(machineInstructions);
-    }
 }

@@ -8,7 +8,6 @@ import memory.MemoryManager;
 import memory.Ram;
 import memory.SSD;
 
-import java.io.IOException;
 
 public class ShellExe {
     private static ProcessScheduler scheduler = new ProcessScheduler();

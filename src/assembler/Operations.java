@@ -8,6 +8,7 @@ public class Operations {
     public static final String halt = "0000";
     public static final String load = "0001";
     public static final String store = "0010";
+
     public static final String add = "0011";
     public static final String sub = "0100";
     public static final String mul = "0101";
@@ -15,6 +16,7 @@ public class Operations {
     public static final String jmp = "0111";
     public static final String jmpz = "1000";
     public static final String jmpn = "1001";
+
     public static final String inc = "1010";
     public static final String dec = "1011";
 
