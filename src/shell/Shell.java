@@ -138,10 +138,10 @@ public class Shell {
                 Operations.jmp(IR.substring(4, 12));
                 break;
             case Operations.jmpz:
-                // Add implementation for jmpz
+                Operations.jmpz(IR.substring(4, 12));
                 break;
             case Operations.jmpn:
-                // Add implementation for jmpn
+                Operations.jmpn(IR.substring(4, 12));
                 break;
             case Operations.inc:
                 Operations.inc();

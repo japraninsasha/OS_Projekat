@@ -1,126 +1,130 @@
 package kernel;
 
+import java.util.ArrayList;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Comparator;
+
+import assembler.Operations;
+import fileSystem.FileSystem;
+import memory.MemoryManager;
+import memory.Ram;
 import shell.Shell;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.PriorityQueue;
-
 public class ProcessScheduler extends Thread {
-    private PriorityQueue<Process> processQueue;
-    private Map<Integer, Process> processTable;
-    private int nextPid;
-    private boolean isRunning;
+
+    public static PriorityQueue<Process> readyQueue;
+    public static ArrayList<Process> allProcesses = new ArrayList<>();
 
     public ProcessScheduler() {
-        processQueue = new PriorityQueue<>(Comparator.comparingInt(p -> p.getRemainingBurstTime()));
-        processTable = new HashMap<>();
-        nextPid = 1;
-        isRunning = false;
-    }
-
-    public synchronized int getNewPid() {
-        return nextPid++;
-    }
-
-    public synchronized void addProcess(Process process) {
-        process.setProcessState(ProcessState.READY);
-        processQueue.add(process);
-        processTable.put(process.getProcessId(), process);
-        System.out.println("Process added: " + process.getProcessName());
+        readyQueue = new PriorityQueue<>(Comparator.comparingInt(Process::getRemainingBurstTime));
     }
 
     @Override
     public void run() {
-        isRunning = true;
-        while (isRunning) {
-            Process p = getNextProcess();
-            if (p != null) {
-                executeProcess(p);
-            }
+        while (!readyQueue.isEmpty()) {
+            Process next = readyQueue.poll();
+            executeProcess(next);
         }
+        System.out.println("There are no processes to be executed");
     }
 
-    private synchronized Process getNextProcess() {
-        if (!processQueue.isEmpty()) {
-            return processQueue.poll();
+    private void executeProcess(Process process) {
+        Shell.currentlyExecuting = process;
+        if (process.getPcValue() == -1) { // Ovo je prvi put da se proces izvršava
+            System.out.println("Process " + process.getName() + " started to execute");
+            int startAddress = Shell.manager.loadProcess(process);
+            process.setStartAddress(startAddress);
+            Shell.base = startAddress;
+            Shell.limit = process.getInstructions().size();
+            Shell.PC = 0;
+            process.setState(ProcessState.RUNNING);
+        } else { // Proces se nastavlja sa izvršavanjem
+            System.out.println("Process " + process.getName() + " is executing again");
+            int startAddress = Shell.manager.loadProcess(process);
+            process.setStartAddress(startAddress);
+            Shell.base = startAddress;
+            Shell.limit = process.getInstructions().size();
+            Shell.loadValues();
+            process.setState(ProcessState.RUNNING);
         }
-        return null;
+        execute(process);
     }
 
-    private void executeProcess(Process p) {
-        Shell.currentlyExecuting = p;
-        Shell.loadValues(); // Učitaj vrednosti registara i PC
-
-        p.setProcessState(ProcessState.RUNNING);
-        System.out.println("Running process: " + p.getProcessName());
-
-        while (p.getRemainingBurstTime() > 0 && p.getProcessState() == ProcessState.RUNNING) {
+    private void execute(Process process) {
+        while (process.getState() == ProcessState.RUNNING) {
             if (Shell.PC >= Shell.limit) {
-                p.setProcessState(ProcessState.TERMINATED);
-                System.out.println("Error: Program counter out of bounds in process " + p.getProcessName());
+                process.setState(ProcessState.TERMINATED);
+                System.out.println("Error: Program counter out of bounds in process " + process.getName());
                 break;
             }
-
-            Shell.IR = Shell.memory.getInstruction(Shell.PC); // Pretpostavimo da postoji metoda getInstruction
+            int temp = Ram.getAt(Shell.PC + Shell.base);
+            String instruction = Shell.fromIntToInstruction(temp);
+            Shell.IR = instruction;
             Shell.executeMachineInstruction();
+            process.setRemainingBurstTime(process.getRemainingBurstTime() - 1);
 
-            p.setRemainingBurstTime(p.getRemainingBurstTime() - 1);
-
-            try {
-                Thread.sleep(100); // Simulacija vremena izvršavanja
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if (process.getRemainingBurstTime() <= 0) {
+                process.setState(ProcessState.DONE);
+                break;
             }
-
-            Shell.saveValues(); // Sačuvaj trenutne vrednosti registara i PC
         }
+        if (process.getState() == ProcessState.BLOCKED) {
+            System.out.println("Process " + process.getName() + " is blocked");
+            Shell.saveValues();
+        } else if (process.getState() == ProcessState.TERMINATED) {
+            System.out.println("Process " + process.getName() + " is terminated");
+            MemoryManager.removeProcess(process);
+        } else if (process.getState() == ProcessState.DONE) {
+            System.out.println("Process " + process.getName() + " is done");
+            MemoryManager.removeProcess(process);
+            FileSystem.createFile(process);
+        }
+        Operations.clearRegisters();
+    }
 
-        if (p.getRemainingBurstTime() > 0) {
-            p.setProcessState(ProcessState.READY);
-            addProcess(p);
-        } else {
-            p.setProcessState(ProcessState.TERMINATED);
-            System.out.println("Process " + p.getProcessName() + " finished.");
+    public static void blockProcess(Integer pid) {
+        if (pid < allProcesses.size()) {
+            allProcesses.get(pid).setState(ProcessState.BLOCKED);
+            return;
+        }
+        System.out.println("Process with PID " + pid + " doesn't exist, check and try again");
+    }
+
+    public static void unblockProcess(Integer pid) {
+        if (pid < allProcesses.size()) {
+            allProcesses.get(pid).setState(ProcessState.READY);
+            readyQueue.add(allProcesses.get(pid));
+            return;
+        }
+        System.out.println("Process with PID " + pid + " doesn't exist, check and try again");
+    }
+
+    public static void terminateProcess(Integer pid) {
+        if (pid < allProcesses.size()) {
+            allProcesses.get(pid).setState(ProcessState.TERMINATED);
+            MemoryManager.removeProcess(allProcesses.get(pid));
+            return;
+        }
+        System.out.println("Process with PID " + pid + " doesn't exist, check and try again");
+    }
+
+    public static void listOfProcesses() {
+        System.out.println("PID\tProgram\t\tSize\tState\t\tCurrent occupation of memory");
+        for (Process process : allProcesses) {
+            System.out.println(process.getProcessId() + "\t" + process.getProcessName() + "\t " + process.getMemoryRequirement() + "\t"
+                    + process.getProcessState()
+                    + (process.getProcessState().toString().length() > 8
+                    ? "\t " + MemoryManager.memoryOccupiedByProcess(process)
+                    : "\t\t " + MemoryManager.memoryOccupiedByProcess(process)));
         }
     }
 
-    public void listProcesses() {
-        for (Process p : processTable.values()) {
-            System.out.println("PID: " + p.getProcessId() + ", Name: " + p.getProcessName() + ", State: " + p.getProcessState() + ", Memory: " + p.getMemoryRequirement() + ", Remaining Burst Time: " + p.getRemainingBurstTime());
-        }
+    public Queue<Process> getReadyQueue() {
+        return readyQueue;
     }
 
-    public synchronized void killProcess(int pid) {
-        Process p = processTable.get(pid);
-        if (p != null && p.getProcessState() != ProcessState.TERMINATED) {
-            p.setProcessState(ProcessState.TERMINATED);
-            System.out.println("Process " + p.getProcessName() + " killed.");
-            processQueue.remove(p);
-        } else {
-            System.out.println("Process not found or already terminated.");
-        }
-    }
-
-    public synchronized void blockProcess(int pid) {
-        Process p = processTable.get(pid);
-        if (p != null && p.getProcessState() == ProcessState.RUNNING) {
-            p.setProcessState(ProcessState.BLOCKED);
-            System.out.println("Process " + p.getProcessName() + " blocked.");
-        } else {
-            System.out.println("Process not found or not running.");
-        }
-    }
-
-    public synchronized void unblockProcess(int pid) {
-        Process p = processTable.get(pid);
-        if (p != null && p.getProcessState() == ProcessState.BLOCKED) {
-            p.setProcessState(ProcessState.READY);
-            processQueue.add(p);
-            System.out.println("Process " + p.getProcessName() + " unblocked.");
-        } else {
-            System.out.println("Process not found or not blocked.");
-        }
+    public int getTimeQuantum() {
+        return 1;
     }
 }

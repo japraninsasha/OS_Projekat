@@ -20,6 +20,7 @@ public class Process {
     private ArrayList<String> instructions = new ArrayList<>();
     private int[] registerValues = new int[4];
     private int pcValue;
+    private int startAddress; // Dodali smo polje za početnu adresu
 
     public Process(int processId, String processName, int totalBurstTime, int memoryRequirement, String program) {
         this.processId = processId;
@@ -28,7 +29,7 @@ public class Process {
         this.remainingBurstTime = totalBurstTime;
         this.memoryRequirement = memoryRequirement;
         this.processState = ProcessState.NEW;
-        //this.filePath = Paths.get(Shell.tree.getCurrentFolder().getAbsolutePath() + "\\" + program);
+        this.filePath = Paths.get(Shell.tree.getCurrentFolder().getAbsolutePath() + "\\" + program);
         loadInstructions();
     }
 
@@ -44,6 +45,8 @@ public class Process {
     public ArrayList<String> getInstructions() { return instructions; }
     public void setInstructions(ArrayList<String> instructions) { this.instructions = instructions; }
     public Path getFilePath() { return filePath; }
+    public int getStartAddress() { return startAddress; }
+    public void setStartAddress(int startAddress) { this.startAddress = startAddress; }
 
     public int[] getValuesOfRegisters() {
         return registerValues;
