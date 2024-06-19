@@ -10,6 +10,9 @@ public class BuddyAllocator {
     private final int[] memory; // Simulating memory space
 
     public BuddyAllocator(int minBlockSize, int maxBlockSize, int totalSize) {
+        if (Integer.bitCount(minBlockSize) != 1 || Integer.bitCount(maxBlockSize) != 1) {
+            throw new IllegalArgumentException("Block sizes must be power of two.");
+        }
         this.minBlockSize = minBlockSize;
         this.maxBlockSize = maxBlockSize;
         this.totalSize = totalSize;
@@ -24,13 +27,17 @@ public class BuddyAllocator {
             freeLists.put(size, new LinkedList<>());
             size *= 2;
         }
-        freeLists.get(maxBlockSize).add(0);
+        freeLists.get(maxBlockSize).add(0); // Add the whole memory as a free block initially
     }
 
     public int allocate(int size) {
         int allocSize = Math.max(minBlockSize, Integer.highestOneBit(size));
+        if (size > allocSize) {
+            allocSize <<= 1;
+        }
+
         while (!freeLists.containsKey(allocSize) || freeLists.get(allocSize).isEmpty()) {
-            allocSize *= 2;
+            allocSize <<= 1;
             if (allocSize > maxBlockSize) {
                 return -1;
             }
@@ -38,26 +45,32 @@ public class BuddyAllocator {
 
         int addr = freeLists.get(allocSize).removeFirst();
         while (allocSize > size) {
-            allocSize /= 2;
+            allocSize >>= 1;
             freeLists.get(allocSize).add(addr + allocSize);
         }
         return addr;
     }
 
     public void deallocate(int addr, int size) {
+        if (addr < 0 || addr >= totalSize || size <= 0 || size > maxBlockSize) {
+            throw new IllegalArgumentException("Invalid address or size.");
+        }
         while (size <= maxBlockSize) {
             LinkedList<Integer> list = freeLists.get(size);
-            Integer buddyAddr = addr ^ size;
-            if (!list.remove(buddyAddr)) {
+            int buddyAddr = addr ^ size;
+            if (!list.remove(Integer.valueOf(buddyAddr))) {
                 list.add(addr);
                 break;
             }
             addr = Math.min(addr, buddyAddr);
-            size *= 2;
+            size <<= 1;
         }
     }
 
     public int[] getMemory(int startAddress, int size) {
+        if (startAddress < 0 || startAddress + size > totalSize) {
+            throw new IllegalArgumentException("Invalid start address or size.");
+        }
         int[] data = new int[size];
         System.arraycopy(memory, startAddress, data, 0, size);
         return data;
