@@ -82,7 +82,31 @@ public class FileSystem {
     }
 
     public static void deleteDirectory(String directory) {
-        currentFolder.removeDirectory(directory);
+        Directory dirToDelete = currentFolder.getSubDirectory(directory);
+        if (dirToDelete != null) {
+            Path dirPath = Paths.get(currentFolder.getAbsolutePath(), directory);
+            try {
+                // Brisanje svih fajlova i poddirektorijuma unutar direktorijuma
+                deleteRecursively(dirPath);
+                currentFolder.removeDirectory(directory);
+                System.out.println("Directory " + directory + " deleted successfully.");
+            } catch (IOException e) {
+                System.out.println("Failed to delete directory " + directory + ": " + e.getMessage());
+            }
+        } else {
+            System.out.println("No such directory: " + directory);
+        }
+    }
+
+    private static void deleteRecursively(Path path) throws IOException {
+        if (Files.isDirectory(path)) {
+            try (DirectoryStream<Path> entries = Files.newDirectoryStream(path)) {
+                for (Path entry : entries) {
+                    deleteRecursively(entry);
+                }
+            }
+        }
+        Files.delete(path);
     }
 
     public static void renameDirectory(String oldName, String newName) {
