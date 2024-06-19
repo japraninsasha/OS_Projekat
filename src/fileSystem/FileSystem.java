@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import assembler.Operations;
 import kernel.Process;
@@ -24,14 +25,18 @@ public class FileSystem {
         currentFolder = rootFolder;
         diskManager = new DiskManager(diskSize);
         simulatedDisk = new SimulatedDisk();
-        loadFilesIntoMemory(rootFolder);
+        if (Files.exists(Paths.get(rootPath))) {
+            loadFilesIntoMemory(rootFolder);
+        } else {
+            System.out.println("Root directory does not exist: " + rootPath);
+        }
     }
 
     private void loadFilesIntoMemory(Directory folder) {
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(folder.toPath())) {
             for (Path path : directoryStream) {
                 if (Files.isDirectory(path)) {
-                    loadFilesIntoMemory(new Directory(path.getFileName().toString()));
+                    loadFilesIntoMemory(new Directory(path.toFile().getName()));
                 } else {
                     byte[] content = Files.readAllBytes(path);
                     MemoryFile newFile = new MemoryFile(path.getFileName().toString(), content);
