@@ -95,7 +95,7 @@ public class ShellExe {
     }
 
     public static void clear() {
-        // Implement GUI clear terminal method
+        GUI.clearTerminal();
     }
 
     public static void help() {
