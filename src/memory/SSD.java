@@ -21,6 +21,7 @@ public class SSD {
         }
         files = new ArrayList<>();
         System.out.println("SSD initialized with size: " + size);
+        System.out.println("Number of free blocks after initialization: " + numberOfFreeBlocks());
     }
 
     public void save(MemoryFile file) {
@@ -31,6 +32,7 @@ public class SSD {
         } else {
             System.out.println("Not enough space, cannot create file: " + file.getName());
         }
+        System.out.println("Number of free blocks after saving file: " + numberOfFreeBlocks());
     }
 
     private int calculateRequiredBlocks(int fileSize) {
@@ -54,9 +56,11 @@ public class SSD {
                     firstPointer = newPointer;
                 }
                 counter++;
+                System.out.println("Block " + i + " allocated to file " + file.getName());
                 if (counter == requiredBlocks) {
                     file.setLength(counter);
                     files.add(file);
+                    System.out.println("File " + file.getName() + " allocated with " + counter + " blocks.");
                     return;
                 }
             }
@@ -70,6 +74,7 @@ public class SSD {
             freeFileBlocks(file);
             files.remove(file);
             System.out.println("File " + file.getName() + " deleted.");
+            System.out.println("Number of free blocks after deleting file: " + numberOfFreeBlocks());
         }
     }
 
@@ -78,13 +83,13 @@ public class SSD {
         while (pointer != null) {
             pointer.block.setOccupied(false);
             pointer.block.setContent(null);
+            System.out.println("Block " + pointer.block.getAddress() + " freed from file " + file.getName());
             Pointer temp = pointer;
             pointer = pointer.next;
             temp.next = null;
         }
         file.setStart(null);
     }
-
 
     public String readFile(MemoryFile file) {
         StringBuilder content = new StringBuilder();
@@ -188,6 +193,7 @@ public class SSD {
             blocks[baseAddress + i].setContent(program[i].getBytes());
             System.out.println("Program instruction loaded at address: " + (baseAddress + i));
         }
+        System.out.println("Number of free blocks after loading program: " + numberOfFreeBlocks());
     }
 
     public String getInstruction(int address) {
