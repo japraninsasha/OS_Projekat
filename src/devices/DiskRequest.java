@@ -1,26 +1,26 @@
 package devices;
 
 public class DiskRequest {
-    private int position;
-    private boolean isRead; // True for read, false for write
-    private byte[] data; // Data to be written, null for read requests
+    private int startBlock;
+    private boolean isRead; // Assuming this is to distinguish between read and write operations
+    private byte[] content;
 
-    public DiskRequest(int position, boolean isRead, byte[] data) {
-        this.position = position;
+    public DiskRequest(int startBlock, boolean isRead, byte[] content) {
+        this.startBlock = startBlock;
         this.isRead = isRead;
-        this.data = data;
+        this.content = content;
     }
 
-    public int getPosition() {
-        return position;
+    public int getStartBlock() {
+        return startBlock;
     }
 
-    public boolean isRead() {
-        return isRead;
+    public byte[] getContent() {
+        return content;
     }
 
-    public byte[] getData() {
-        return data;
+    @Override
+    public String toString() {
+        return "DiskRequest[startBlock=" + startBlock + ", isRead=" + isRead + "]";
     }
 }
-

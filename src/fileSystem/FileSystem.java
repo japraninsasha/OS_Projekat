@@ -88,12 +88,15 @@ public class FileSystem {
             MemoryFile newFile = new MemoryFile(fileName, content);
             currentFolder.addFile(new File(fileName, content.length, startBlock));
             Shell.memory.save(newFile);
+            processDiskRequests(); // Pozivanje obrade diskovnih zahteva odmah nakon dodavanja
+            System.out.println("File " + fileName + " created successfully.");
             return true;
         } else {
             System.out.println("Not enough space to create file");
             return false;
         }
     }
+
 
 
     public static void deleteFile(String fileName) {

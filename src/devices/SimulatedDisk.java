@@ -1,64 +1,53 @@
 package devices;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class SimulatedDisk {
-    private int currentPosition;
-    private List<DiskRequest> requestQueue;
+    private Queue<DiskRequest> requestQueue;
 
     public SimulatedDisk() {
-        this.currentPosition = 0;
-        this.requestQueue = new ArrayList<>();
+        requestQueue = new LinkedList<>();
     }
 
     public void addRequest(DiskRequest request) {
         requestQueue.add(request);
+        System.out.println("Added request: " + request);
     }
 
     public void processNextRequest() {
-        if (requestQueue.isEmpty()) {
-            System.out.println("No pending disk requests.");
-            return;
-        }
-
-        // Find the request with the shortest seek time
-        DiskRequest nextRequest = findShortestSeekTimeRequest();
-        requestQueue.remove(nextRequest);
-
-        // Move the disk head to the request position
-        currentPosition = nextRequest.getPosition();
-        System.out.println("Processing request at position: " + currentPosition);
-
-        if (nextRequest.isRead()) {
-            // Simulate reading data from disk
-            System.out.println("Read operation completed.");
-        } else {
-            // Simulate writing data to disk
-            System.out.println("Write operation completed.");
+        if (!requestQueue.isEmpty()) {
+            DiskRequest request = requestQueue.poll();
+            System.out.println("Processing request: " + request);
+            writeToFile(request);
         }
     }
 
-    private DiskRequest findShortestSeekTimeRequest() {
-        DiskRequest shortestSeekTimeRequest = null;
-        int shortestSeekTime = Integer.MAX_VALUE;
-
-        for (DiskRequest request : requestQueue) {
-            int seekTime = Math.abs(currentPosition - request.getPosition());
-            if (seekTime < shortestSeekTime) {
-                shortestSeekTime = seekTime;
-                shortestSeekTimeRequest = request;
-            }
-        }
-
-        return shortestSeekTimeRequest;
+    public boolean hasPendingRequests() {
+        return !requestQueue.isEmpty();
     }
 
     public void printRequestQueue() {
-        System.out.println("Current request queue:");
-        for (DiskRequest request : requestQueue) {
-            System.out.println("Position: " + request.getPosition() + ", Type: " + (request.isRead() ? "Read" : "Write"));
+        System.out.println("Current request queue: " + requestQueue);
+    }
+
+    private void writeToFile(DiskRequest request) {
+        if (request != null && request.getContent() != null) {
+            Path path = Paths.get("output_files", "file_" + request.getStartBlock() + ".txt");
+            try {
+                Files.createDirectories(path.getParent());
+                try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
+                    fos.write(request.getContent());
+                    System.out.println("File written to: " + path.toAbsolutePath());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
-
