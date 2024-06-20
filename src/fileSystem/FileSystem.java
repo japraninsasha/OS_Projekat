@@ -1,19 +1,16 @@
 package fileSystem;
 
+import devices.DiskRequest;
+import devices.SimulatedDisk;
+import memory.MemoryFile;
+import shell.Shell;
+
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.nio.charset.StandardCharsets;
-
-import assembler.Operations;
-import kernel.Process;
-import memory.MemoryFile;
-import shell.Shell;
-import devices.DiskRequest;
-import devices.SimulatedDisk;
 
 public class FileSystem {
     private static Directory rootFolder;
@@ -86,7 +83,7 @@ public class FileSystem {
         if (dirToDelete != null) {
             Path dirPath = Paths.get(currentFolder.getAbsolutePath(), directory);
             try {
-                // Brisanje svih fajlova i poddirektorijuma unutar direktorijuma
+                // Delete all files and subdirectories within the directory
                 deleteRecursively(dirPath);
                 currentFolder.removeDirectory(directory);
                 System.out.println("Directory " + directory + " deleted successfully.");
@@ -127,6 +124,9 @@ public class FileSystem {
     }
 
     public static boolean createFile(String fileName, byte[] content) {
+        if (content.length == 0) {
+            content = new byte[1]; // Ensure at least 1 byte is allocated
+        }
         int startBlock = diskManager.allocate(content.length);
         if (startBlock != -1) {
             DiskRequest writeRequest = new DiskRequest(startBlock, false, content);
@@ -134,9 +134,8 @@ public class FileSystem {
             MemoryFile newFile = new MemoryFile(fileName, content);
             currentFolder.addFile(new File(fileName, content.length, startBlock));
             Shell.memory.save(newFile);
-            processDiskRequests(); // Pozivanje obrade diskovnih zahteva odmah nakon dodavanja
+            processDiskRequests();
 
-            // Kreiranje fizičkog fajla na disku
             Path filePath = Paths.get(currentFolder.getAbsolutePath(), fileName);
             try {
                 Files.write(filePath, content, StandardOpenOption.CREATE);
@@ -152,6 +151,24 @@ public class FileSystem {
         }
     }
 
+    public static boolean writeFile(String fileName, byte[] content) {
+        File file = currentFolder.getFile(fileName);
+        if (file != null) {
+            Path filePath = Paths.get(currentFolder.getAbsolutePath(), fileName);
+            try {
+                Files.write(filePath, content, StandardOpenOption.APPEND);
+                System.out.println("Content written to file " + fileName + " successfully.");
+                return true;
+            } catch (IOException e) {
+                System.out.println("Failed to write content to file " + fileName + ": " + e.getMessage());
+                return false;
+            }
+        } else {
+            System.out.println("No such file: " + fileName);
+            return false;
+        }
+    }
+
     public static void deleteFile(String fileName) {
         File file = currentFolder.getFile(fileName);
         if (file != null) {
@@ -161,7 +178,6 @@ public class FileSystem {
             currentFolder.removeFile(fileName);
             Shell.memory.deleteFile(Shell.memory.getFile(fileName));
 
-            // Brisanje fizičkog fajla sa diska
             Path filePath = Paths.get(currentFolder.getAbsolutePath(), fileName);
             try {
                 Files.delete(filePath);
@@ -171,6 +187,26 @@ public class FileSystem {
             }
         } else {
             System.out.println("No such file: " + fileName);
+        }
+    }
+
+    public static boolean renameFile(String oldName, String newName) {
+        File file = currentFolder.getFile(oldName);
+        if (file != null) {
+            Path oldFilePath = Paths.get(currentFolder.getAbsolutePath(), oldName);
+            Path newFilePath = Paths.get(currentFolder.getAbsolutePath(), newName);
+            try {
+                Files.move(oldFilePath, newFilePath);
+                file.setName(newName);
+                System.out.println("File renamed successfully.");
+                return true;
+            } catch (IOException e) {
+                System.out.println("Failed to rename file: " + e.getMessage());
+                return false;
+            }
+        } else {
+            System.out.println("No such file: " + oldName);
+            return false;
         }
     }
 

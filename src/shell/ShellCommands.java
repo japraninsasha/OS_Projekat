@@ -143,10 +143,29 @@ public class ShellCommands {
                 break;
 
             case "cf":
+                if (commands.length == 2) {
+                    String fileName = commands[1];
+                    ShellExe.cf(fileName);
+                } else {
+                    errorWithParameters();
+                }
+                break;
+
+            case "write":
                 if (commands.length >= 3) {
                     String fileName = commands[1];
                     String fileContent = command.substring(command.indexOf(fileName) + fileName.length()).trim();
-                    ShellExe.cf(fileName, fileContent);
+                    ShellExe.write(fileName, fileContent);
+                } else {
+                    errorWithParameters();
+                }
+                break;
+
+            case "rename":
+                if (commands.length == 3) {
+                    String oldName = commands[1];
+                    String newName = commands[2];
+                    ShellExe.renameFile(oldName, newName);
                 } else {
                     errorWithParameters();
                 }

@@ -9,7 +9,7 @@ public class DiskManager {
 
     public DiskManager(int diskSize) {
         this.diskSize = diskSize;
-        this.blockSize = 1; // Pretpostavimo da je veličina bloka 1 bajt
+        this.blockSize = 1; // Assume block size is 1 byte
         this.bitVector = new BitSet(diskSize);
     }
 
@@ -20,6 +20,9 @@ public class DiskManager {
             for (int i = startBlock; i < startBlock + numBlocks; i++) {
                 bitVector.set(i);
             }
+            System.out.println("Allocated " + numBlocks + " blocks starting at block " + startBlock);
+        } else {
+            System.out.println("Not enough space to allocate " + numBlocks + " blocks.");
         }
         return startBlock;
     }
@@ -29,6 +32,7 @@ public class DiskManager {
         for (int i = startBlock; i < startBlock + numBlocks; i++) {
             bitVector.clear(i);
         }
+        System.out.println("Deallocated " + numBlocks + " blocks starting at block " + startBlock);
     }
 
     private int findFreeBlocks(int numBlocks) {
@@ -43,7 +47,7 @@ public class DiskManager {
                 freeBlockCount = 0;
             }
         }
-        return -1; // Nema dovoljno slobodnih blokova
+        return -1; // No sufficient free blocks
     }
 
     public void printBitVector() {
@@ -53,4 +57,3 @@ public class DiskManager {
         System.out.println();
     }
 }
-

@@ -8,7 +8,6 @@ import memory.MemoryManager;
 import memory.Ram;
 import memory.SSD;
 
-
 public class ShellExe {
     private static ProcessScheduler scheduler = new ProcessScheduler();
 
@@ -52,13 +51,31 @@ public class ShellExe {
         MemoryManager.printMemory();
     }
 
-    public static void cf(String fileName, String fileContent) {
-        byte[] contentBytes = fileContent.getBytes();
-        boolean success = FileSystem.createFile(fileName, contentBytes);
+    public static void cf(String fileName) {
+        boolean success = FileSystem.createFile(fileName, new byte[0]); // Create empty file
         if (success) {
             System.out.println("File " + fileName + " created successfully.");
         } else {
             System.out.println("Failed to create file " + fileName + ".");
+        }
+    }
+
+    public static void write(String fileName, String fileContent) {
+        byte[] contentBytes = fileContent.getBytes();
+        boolean success = FileSystem.writeFile(fileName, contentBytes);
+        if (success) {
+            System.out.println("Content written to file " + fileName + " successfully.");
+        } else {
+            System.out.println("Failed to write content to file " + fileName + ".");
+        }
+    }
+
+    public static void renameFile(String oldName, String newName) {
+        boolean success = FileSystem.renameFile(oldName, newName);
+        if (success) {
+            System.out.println("File " + oldName + " renamed to " + newName + " successfully.");
+        } else {
+            System.out.println("Failed to rename file " + oldName + ".");
         }
     }
 
@@ -106,7 +123,7 @@ public class ShellExe {
     }
 
     public static void clear() {
-        //todo
+        // todo
     }
 
     public static void help() {
