@@ -8,6 +8,8 @@ import memory.MemoryManager;
 import memory.Ram;
 import memory.SSD;
 
+import java.io.File;
+
 public class ShellExe {
     private static ProcessScheduler scheduler = new ProcessScheduler();
 
@@ -80,10 +82,20 @@ public class ShellExe {
     }
 
     public static void load(String par) {
+        String filePath = "OS_Projekat\\Programs\\" + par; //change to AbsolutePath
+
+        //check if file exists in Programs directory
+        File programFile = new File(filePath);
+        if (!programFile.exists()) {
+            System.out.println("Error reading program file: " + filePath);
+            return;
+        }
+
         int pid = scheduler.getNewPID();
         Process process = new Process(pid, "Process" + pid, 100, 1024, par);
         scheduler.addProcess(process);
     }
+
 
     public static void exe() {
         if (!scheduler.isAlive()) {
