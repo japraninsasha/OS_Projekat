@@ -87,7 +87,12 @@ public class ShellCommands {
                 break;
 
             case "exe":
-                ShellExe.exe();
+                if (commands.length == 2) {
+                    String parameter = commands[1];
+                    ShellExe.exe(parameter);
+                } else {
+                    errorWithParameters();
+                }
                 break;
 
             case "pr":

@@ -82,7 +82,7 @@ public class ShellExe {
     }
 
     public static void load(String par) {
-        String filePath = "OS_Projekat\\Programs\\" + par; //change to AbsolutePath
+        String filePath = "C:\\Users\\sasaj\\Desktop\\Simulator\\OS_Projekat\\Programs\\" + par; //change to AbsolutePath
 
         //check if file exists in Programs directory
         File programFile = new File(filePath);
@@ -97,11 +97,15 @@ public class ShellExe {
     }
 
 
-    public static void exe() {
-        if (!scheduler.isAlive()) {
-            scheduler.start();
+    public static void exe(String par) {
+        try {
+            int pid = Integer.parseInt(par);
+            scheduler.executeSpecificProcess(pid);
+        } catch (NumberFormatException e) {
+            ShellCommands.errorWithParameters();
         }
     }
+
 
     public static void pr() {
         scheduler.listOfProcesses();

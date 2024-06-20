@@ -141,6 +141,24 @@ public class ProcessScheduler extends Thread {
         }
     }
 
+    public void executeSpecificProcess(int pid) {
+        Process processToExecute = null;
+        for (Process process : readyQueue) {
+            if (process.getProcessId() == pid) {
+                processToExecute = process;
+                break;
+            }
+        }
+
+        if (processToExecute != null) {
+            readyQueue.remove(processToExecute);
+            executeProcess(processToExecute);
+        } else {
+            System.out.println("Process with PID " + pid + " doesn't exist in ready queue.");
+        }
+    }
+
+
     public Queue<Process> getReadyQueue() {
         return readyQueue;
     }
