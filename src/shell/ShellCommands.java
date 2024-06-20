@@ -4,13 +4,11 @@ import java.util.ArrayList;
 
 public class ShellCommands {
     private static ArrayList<String> commandList = new ArrayList<>();
-    private static int iter;
 
     public static void readCommand(String command) {
         commandList.add(command);
-        iter = commandList.size();
         command = command.toLowerCase();
-        String commands[];
+        String[] commands;
         commands = command.split(" ");
 
         switch (commands[0]) {
@@ -64,16 +62,6 @@ public class ShellCommands {
             case "mem":
                 if (commands.length == 1) {
                     ShellExe.mem();
-                } else if (commands.length == 2) {
-                    String parameter = commands[1];
-                    if (parameter.equals("-m")) {
-                        ShellExe.memM();
-                    } else if (parameter.equals("-r")) {
-                        ShellExe.memR();
-                    } else if (parameter.equals("-s")) {
-                        ShellExe.memS();
-                    } else
-                        errorWithParameters();
                 } else
                     errorWithParameters();
                 break;

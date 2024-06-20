@@ -37,18 +37,6 @@ public class ShellExe {
         FileSystem.renameDirectory(name, newName);
     }
 
-    public static void memM() {
-        Ram.printRAM();
-    }
-
-    public static void memR() {
-        Operations.printRegisters();
-    }
-
-    public static void memS() {
-        SSD.printMemoryAllocationTable();
-    }
-
     public static void mem() {
         MemoryManager.printMemory();
     }
@@ -137,8 +125,6 @@ public class ShellExe {
         help += "EXE \t\t Start executing processes. \n";
         help += "PR \t\t List of processes.\n";
         help += "TRM \t\t Terminate process.\n";
-        help += "BLOCK \t\t Blocks process.\n";
-        help += "UNBLOCK \t\t Unblocks process.\n";
         help += "CLEAR \t\t Clears terminal.\n";
         help += "EXIT \t\t Closes program.";
 
