@@ -91,7 +91,7 @@ public class ProcessScheduler extends Thread {
 
     private boolean createOutputFileForProcess(Process process) {
         String fileName = process.getProcessName() + "_output.txt";
-        String content = "Process " + process.getProcessName() + " has completed execution.";
+        String content = "Process " + process.getProcessName() + " has completed execution. Result: "+Operations.R4.value;
         return FileSystem.createFile(fileName, content.getBytes());
     }
 
