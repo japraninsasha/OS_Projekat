@@ -110,21 +110,6 @@ public class ShellCommands {
                     errorWithParameters();
                 break;
 
-            case "block":
-                if (commands.length == 2) {
-                    String parameter = commands[1];
-                    ShellExe.block(parameter);
-                } else
-                    errorWithParameters();
-                break;
-
-            case "unblock":
-                if (commands.length == 2) {
-                    String parameter = commands[1];
-                    ShellExe.unblock(parameter);
-                } else
-                    errorWithParameters();
-                break;
 
             case "clear":
                 if (commands.length == 1) {

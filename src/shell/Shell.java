@@ -15,7 +15,7 @@ public class Shell {
     public static SSD memory;
     public static FileSystem tree;
     public static Process currentlyExecuting = null;
-    public static MemoryManager manager; // Dodali smo polje manager
+    public static MemoryManager manager;
     public static int PC; // Program counter
     public static String IR; // Instruction register
     public static int base;
@@ -23,15 +23,14 @@ public class Shell {
 
     public static void boot() {
         memory = new SSD();
-        tree = new FileSystem("C:\\Users\\sasaj\\Desktop\\Simulator\\OS_Projekat\\Programs", 2048); // Pretpostavka da se disk veličina definiše kao 2048 blokova
-        manager = new MemoryManager(4, 1024, 2048); // Inicijalizacija MemoryManager-a
+        tree = new FileSystem("OS_Projekat\\Programs\\", 2048);
+        manager = new MemoryManager(4, 1024, 2048);
     }
 
     public static String asemblerToMachineInstruction(String command) {
         String instruction = "";
-        String arr[] = command.split("[ |,]");
+        String[] arr = command.split("[ |,]");
 
-        // prevodjenje operacije
         switch (arr[0].toUpperCase()) {
             case "HALT":
                 instruction += Operations.halt;
@@ -93,7 +92,7 @@ public class Shell {
     private static String toBinary(String s) {
         int num = Integer.parseInt(s);
         String bin = Integer.toBinaryString(num);
-        return String.format("%8s", bin).replace(' ', '0'); // pad to 8 bits
+        return String.format("%8s", bin).replace(' ', '0');
     }
 
     private static String getRegisterBinary(String reg) {
@@ -161,7 +160,7 @@ public class Shell {
 
     public static String fromIntToInstruction(int temp) {
         String bin = Integer.toBinaryString(temp);
-        return String.format("%16s", bin).replace(' ', '0'); // pad to 16 bits
+        return String.format("%16s", bin).replace(' ', '0');
     }
 
     public static void saveValues() {

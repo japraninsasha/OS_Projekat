@@ -71,10 +71,7 @@ public class ProcessScheduler extends Thread {
                 break;
             }
         }
-        if (process.getState() == ProcessState.BLOCKED) {
-            System.out.println("Process " + process.getName() + " is blocked");
-            Shell.saveValues();
-        } else if (process.getState() == ProcessState.TERMINATED) {
+        if (process.getState() == ProcessState.TERMINATED) {
             System.out.println("Process " + process.getName() + " is terminated");
             MemoryManager.removeProcess(process);
         } else if (process.getState() == ProcessState.DONE) {
@@ -95,22 +92,6 @@ public class ProcessScheduler extends Thread {
         return FileSystem.createFile(fileName, content.getBytes());
     }
 
-    public static void blockProcess(Integer pid) {
-        if (pid < allProcesses.size()) {
-            allProcesses.get(pid).setState(ProcessState.BLOCKED);
-            return;
-        }
-        System.out.println("Process with PID " + pid + " doesn't exist, check and try again");
-    }
-
-    public static void unblockProcess(Integer pid) {
-        if (pid < allProcesses.size()) {
-            allProcesses.get(pid).setState(ProcessState.READY);
-            readyQueue.add(allProcesses.get(pid));
-            return;
-        }
-        System.out.println("Process with PID " + pid + " doesn't exist, check and try again");
-    }
 
     public void terminateProcess(Integer pid) {
         if (pid < allProcesses.size()) {
@@ -159,7 +140,4 @@ public class ProcessScheduler extends Thread {
     }
 
 
-    public Queue<Process> getReadyQueue() {
-        return readyQueue;
-    }
 }

@@ -82,7 +82,7 @@ public class ShellExe {
     }
 
     public static void load(String par) {
-        String filePath = "C:\\Users\\sasaj\\Desktop\\Simulator\\OS_Projekat\\Programs\\" + par; //change to AbsolutePath
+        String filePath = "C:\\Users\\Sinisa\\Desktop\\finalOSproject\\OS_Projekat\\Programs\\" + par; //change to AbsolutePath
 
         //check if file exists in Programs directory
         File programFile = new File(filePath);
@@ -115,24 +115,6 @@ public class ShellExe {
         try {
             int pid = Integer.parseInt(par);
             scheduler.terminateProcess(pid);
-        } catch (NumberFormatException e) {
-            ShellCommands.errorWithParameters();
-        }
-    }
-
-    public static void block(String par) {
-        try {
-            int pid = Integer.parseInt(par);
-            scheduler.blockProcess(pid);
-        } catch (NumberFormatException e) {
-            ShellCommands.errorWithParameters();
-        }
-    }
-
-    public static void unblock(String par) {
-        try {
-            int pid = Integer.parseInt(par);
-            scheduler.unblockProcess(pid);
         } catch (NumberFormatException e) {
             ShellCommands.errorWithParameters();
         }
