@@ -17,13 +17,11 @@ public class SimulatedDisk {
 
     public void addRequest(DiskRequest request) {
         requestQueue.add(request);
-        System.out.println("Added request: " + request);
     }
 
     public void processNextRequest() {
         if (!requestQueue.isEmpty()) {
             DiskRequest request = requestQueue.poll();
-            System.out.println("Processing request: " + request);
             writeToFile(request);
         }
     }

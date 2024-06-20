@@ -20,19 +20,15 @@ public class SSD {
             blocks[i] = new Block(i);
         }
         files = new ArrayList<>();
-        System.out.println("SSD initialized with size: " + size);
-        System.out.println("Number of free blocks after initialization: " + numberOfFreeBlocks());
     }
 
     public void save(MemoryFile file) {
         int requiredBlocks = calculateRequiredBlocks(file.getSize());
         if (numberOfFreeBlocks() >= requiredBlocks) {
             allocateBlocksToFile(file, requiredBlocks);
-            System.out.println("File " + file.getName() + " saved with required blocks: " + requiredBlocks);
         } else {
             System.out.println("Not enough space, cannot create file: " + file.getName());
         }
-        System.out.println("Number of free blocks after saving file: " + numberOfFreeBlocks());
     }
 
     private int calculateRequiredBlocks(int fileSize) {
@@ -46,7 +42,7 @@ public class SSD {
         for (int i = 0; i < numberOfBlocks; i++) {
             if (!blocks[i].isOccupied()) {
                 blocks[i].setOccupied(true);
-                blocks[i].setContent(file.part(counter, Block.getSize()));  // Use instance method
+                blocks[i].setContent(file.part(counter, Block.getSize()));
                 if (counter == 0) {
                     firstPointer = new Pointer(blocks[i]);
                     file.setStart(firstPointer);
@@ -56,11 +52,9 @@ public class SSD {
                     firstPointer = newPointer;
                 }
                 counter++;
-                System.out.println("Block " + i + " allocated to file " + file.getName());
                 if (counter == requiredBlocks) {
                     file.setLength(counter);
                     files.add(file);
-                    System.out.println("File " + file.getName() + " allocated with " + counter + " blocks.");
                     return;
                 }
             }
@@ -91,36 +85,6 @@ public class SSD {
         file.setStart(null);
     }
 
-    public String readFile(MemoryFile file) {
-        StringBuilder content = new StringBuilder();
-        Pointer pointer = file.getStart();
-        while (pointer != null) {
-            for (byte b : pointer.block.getContent()) {
-                content.append((char) b);
-            }
-            pointer = pointer.next;
-        }
-        return content.toString();
-    }
-
-    public void updateFile(MemoryFile file) {
-        int requiredBlocks = calculateRequiredBlocks(file.getSize());
-        int occupiedBlocks = numberOfBlocksOccupiedByFile(file);
-
-        if (requiredBlocks > occupiedBlocks) {
-            if (numberOfFreeBlocks() < requiredBlocks - occupiedBlocks) {
-                System.out.println("Not enough space to update file " + file.getName() + ", old version of file will be saved.");
-            } else {
-                deleteFile(file);
-                save(file);
-                System.out.println("File " + file.getName() + " updated.");
-            }
-        } else {
-            deleteFile(file);
-            save(file);
-            System.out.println("File " + file.getName() + " updated.");
-        }
-    }
 
     private int numberOfFreeBlocks() {
         int freeBlocks = 0;
@@ -129,7 +93,6 @@ public class SSD {
                 freeBlocks++;
             }
         }
-        System.out.println("Number of free blocks: " + freeBlocks);
         return freeBlocks;
     }
 
@@ -187,27 +150,6 @@ public class SSD {
         }
     }
 
-    public void loadProgram(String[] program, int baseAddress) {
-        for (int i = 0; i < program.length; i++) {
-            blocks[baseAddress + i].setOccupied(true);
-            blocks[baseAddress + i].setContent(program[i].getBytes());
-            System.out.println("Program instruction loaded at address: " + (baseAddress + i));
-        }
-        System.out.println("Number of free blocks after loading program: " + numberOfFreeBlocks());
-    }
-
-    public String getInstruction(int address) {
-        if (address >= 0 && address < blocks.length) {
-            byte[] content = blocks[address].getContent();
-            if (content != null) {
-                return new String(content).trim();
-            } else {
-                return ""; // Prazan sadržaj
-            }
-        } else {
-            throw new IndexOutOfBoundsException("Invalid memory address");
-        }
-    }
 
     protected static class Pointer {
         private Block block;

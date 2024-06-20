@@ -40,7 +40,7 @@ public class FileSystem {
                 } else {
                     byte[] content = Files.readAllBytes(path);
                     MemoryFile newFile = new MemoryFile(path.getFileName().toString(), content);
-                    folder.addFile(new File(path.getFileName().toString(), content.length, 0)); // Assuming start block is 0 for simplicity
+                    folder.addFile(new File(path.getFileName().toString(), content.length, 0));
                     if (!Shell.memory.contains(path.getFileName().toString())) {
                         Shell.memory.save(newFile);
                     }
@@ -83,7 +83,6 @@ public class FileSystem {
         if (dirToDelete != null) {
             Path dirPath = Paths.get(currentFolder.getAbsolutePath(), directory);
             try {
-                // Delete all files and subdirectories within the directory
                 deleteRecursively(dirPath);
                 currentFolder.removeDirectory(directory);
                 System.out.println("Directory " + directory + " deleted successfully.");
@@ -125,7 +124,7 @@ public class FileSystem {
 
     public static boolean createFile(String fileName, byte[] content) {
         if (content.length == 0) {
-            content = new byte[1]; // Ensure at least 1 byte is allocated
+            content = new byte[1];
         }
         int startBlock = diskManager.allocate(content.length);
         if (startBlock != -1) {

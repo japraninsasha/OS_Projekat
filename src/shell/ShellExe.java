@@ -42,7 +42,7 @@ public class ShellExe {
     }
 
     public static void cf(String fileName) {
-        boolean success = FileSystem.createFile(fileName, new byte[0]); // Create empty file
+        boolean success = FileSystem.createFile(fileName, new byte[0]);
         if (success) {
             System.out.println("File " + fileName + " created successfully.");
         } else {
@@ -70,9 +70,8 @@ public class ShellExe {
     }
 
     public static void load(String par) {
-        String filePath = "C:\\Users\\Sinisa\\Desktop\\finalOSproject\\OS_Projekat\\Programs\\" + par; //change to AbsolutePath
+        String filePath = "OS_Projekat\\Programs\\" + par; //change to AbsolutePath
 
-        //check if file exists in Programs directory
         File programFile = new File(filePath);
         if (!programFile.exists()) {
             System.out.println("Error reading program file: " + filePath);

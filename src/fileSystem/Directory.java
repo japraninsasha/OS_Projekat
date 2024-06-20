@@ -37,14 +37,6 @@ public class Directory {
         return null;
     }
 
-    public void renameDirectory(String oldName, String newName) {
-        Directory dir = getSubDirectory(oldName);
-        if (dir != null) {
-            dir.setName(newName);
-        } else {
-            System.out.println("No such directory: " + oldName);
-        }
-    }
 
     public void addFile(File file) {
         files.put(file.getName(), file);

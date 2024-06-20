@@ -20,7 +20,7 @@ public class Process {
     private ArrayList<String> instructions = new ArrayList<>();
     private int[] registerValues = new int[4];
     private int pcValue;
-    private int startAddress; // Dodali smo polje za početnu adresu
+    private int startAddress;
 
     public Process(int processId, String processName, int totalBurstTime, int memoryRequirement, String program) {
         this.processId = processId;
