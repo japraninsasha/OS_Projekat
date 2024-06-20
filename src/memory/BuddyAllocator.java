@@ -10,8 +10,8 @@ public class BuddyAllocator {
     private final int[] memory; // Simulating memory space
 
     public BuddyAllocator(int minBlockSize, int maxBlockSize, int totalSize) {
-        if (Integer.bitCount(minBlockSize) != 1 || Integer.bitCount(maxBlockSize) != 1) {
-            throw new IllegalArgumentException("Block sizes must be power of two.");
+        if (Integer.bitCount(minBlockSize) != 1 || Integer.bitCount(maxBlockSize) != 1 || Integer.bitCount(totalSize) != 1) {
+            throw new IllegalArgumentException("Block sizes and total size must be power of two.");
         }
         this.minBlockSize = minBlockSize;
         this.maxBlockSize = maxBlockSize;
@@ -31,15 +31,19 @@ public class BuddyAllocator {
     }
 
     public int allocate(int size) {
-        int allocSize = Math.max(minBlockSize, Integer.highestOneBit(size));
-        if (size > allocSize) {
+        if (size <= 0 || size > maxBlockSize) {
+            throw new IllegalArgumentException("Invalid size.");
+        }
+
+        int allocSize = minBlockSize;
+        while (allocSize < size) {
             allocSize <<= 1;
         }
 
         while (!freeLists.containsKey(allocSize) || freeLists.get(allocSize).isEmpty()) {
             allocSize <<= 1;
             if (allocSize > maxBlockSize) {
-                return -1;
+                return -1; // No available block
             }
         }
 
@@ -52,9 +56,10 @@ public class BuddyAllocator {
     }
 
     public void deallocate(int addr, int size) {
-        if (addr < 0 || addr >= totalSize || size <= 0 || size > maxBlockSize) {
+        if (addr < 0 || addr >= totalSize || size <= 0 || size > maxBlockSize || (addr % size != 0)) {
             throw new IllegalArgumentException("Invalid address or size.");
         }
+
         while (size <= maxBlockSize) {
             LinkedList<Integer> list = freeLists.get(size);
             int buddyAddr = addr ^ size;
@@ -79,7 +84,7 @@ public class BuddyAllocator {
     public void printMemory() {
         System.out.println("Memory Allocation Status:");
         for (Map.Entry<Integer, LinkedList<Integer>> entry : freeLists.entrySet()) {
-            System.out.println("Block size: " + entry.getKey() + ", Free blocks: " + entry.getValue());
+            System.out.println("Block size: " + entry.getKey() + ", Free blocks: " + entry.getValue().size());
         }
     }
 }

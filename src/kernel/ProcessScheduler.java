@@ -15,7 +15,7 @@ public class ProcessScheduler extends Thread {
 
     public static PriorityQueue<Process> readyQueue;
     public static ArrayList<Process> allProcesses = new ArrayList<>();
-    private static int nextPID = 1;
+    private static int nextPID = 0;
 
     public ProcessScheduler() {
         readyQueue = new PriorityQueue<>(Comparator.comparingInt(Process::getRemainingBurstTime));
